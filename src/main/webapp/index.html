@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <style>
+        .top-nav {
+            background-color: #2c2c2c; /* 深色背景更契合游戏图鉴风格 */
+            overflow: hidden;
+            display: flex;
+            justify-content: center; /* 按钮居中对齐 */
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .top-nav a {
+            color: #f2f2f2;
+            text-align: center;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .top-nav a:hover {
+            background-color: #d4a373; /* 鼠标悬停时的颜色 */
+            color: #1a1a1a;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title>KuruoWiki - 共鸣者图鉴</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 20px;
+            scroll-behavior: smooth; /* 让回到顶部更丝滑 */
+        }
+
+        #userBar {
+            position: absolute;
+            top: 25px;
+            right: 40px;
+            font-size: 15px;
+            color: #aaa;
+            z-index: 100;
+            background: rgba(30, 30, 30, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #f39c12;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            letter-spacing: 2px;
+            margin-top: 40px;
+        }
+
+        .filter-console {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 12px 15px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            color: #fff;
+            border-radius: 12px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .filter-select:hover, .filter-select:focus {
+            border-color: #f39c12;
+            box-shadow: 0 0 10px rgba(243,156,18,0.3);
+        }
+
+        .character-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1300px;
+            margin: 0 auto 40px auto;
+        }
+
+        .card {
+            position: relative;
+            height: 500px;
+            background: #1e1e1e;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #333;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            /* 默认阴影颜色，会被 JS 动态覆盖 */
+            --elem-color: #f39c12;
+        }
+
+        /* 🚨 核心特效：读取 CSS 变量发光 */
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 35px var(--elem-color);
+            border-color: var(--elem-color);
+        }
+
+        .card-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            z-index: 1;
+            transition: transform 0.6s ease;
+        }
+
+        .card:hover .card-img {
+            transform: scale(1.1);
+        }
+
+        .card-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 2;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0) 100%);
+            padding: 40px 20px 20px 20px;
+            box-sizing: border-box;
+        }
+
+        .card-name { font-size: 26px; font-weight: bold; margin: 0 0 10px 0; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .tag { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 12px; margin-right: 8px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .rarity-5 { color: #f1c40f; border-color: #f1c40f; }
+        .rarity-4 { color: #9b59b6; border-color: #9b59b6; }
+        .desc { font-size: 14px; color: #ddd; line-height: 1.6; margin-top: 15px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* 🚨 新增：回到顶部按钮特效 */
+        #backToTop {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(243, 156, 18, 0.7);
+            color: #000;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            display: none; /* 默认隐藏 */
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #backToTop:hover {
+            transform: scale(1.1) translateY(-5px);
+            background: rgba(243, 156, 18, 1);
+            box-shadow: 0 0 25px rgba(243, 156, 18, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="top-nav">
+    <a href="index.html">角色库</a>
+    <a href="weapons.html">武器库</a>
+    <a href="echoes.html">声骸库</a>
+</nav>
+
+<div id="userBar">
+    <a href="login.html" style="color: #f39c12; text-decoration: none; font-weight: bold;">🔑 漂泊者登录</a>
+</div>
+
+<h1>✦ 共鸣者档案库 ✦</h1>
+
+<div class="filter-console">
+    <input type="text" id="searchInput" placeholder="🔍 输入共鸣者姓名进行检索..."
+           style="width: 300px; padding: 12px 20px; background: #1a1a1a; border: 2px solid #333; color: #fff; border-radius: 25px; outline: none; transition: all 0.3s;"
+           onfocus="this.style.borderColor='#f39c12'; this.style.boxShadow='0 0 10px rgba(243,156,18,0.5)'"
+           onblur="this.style.borderColor='#333'; this.style.boxShadow='none'">
+
+    <select id="elementFilter" class="filter-select">
+        <option value="全部">✦ 全部属性</option>
+        <option value="衍射">衍射</option>
+        <option value="气动">气动</option>
+        <option value="导电">导电</option>
+        <option value="热熔">热熔</option>
+        <option value="冷凝">冷凝</option>
+        <option value="湮灭">湮灭</option>
+    </select>
+
+    <select id="rarityFilter" class="filter-select">
+        <option value="0">✦ 全部星级</option>
+        <option value="5">5星 共鸣者</option>
+        <option value="4">4星 共鸣者</option>
+    </select>
+</div>
+
+<div class="character-container" id="charList">
+    <p style="text-align: center;">正在同步档案数据...</p>
+</div>
+
+<button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">⬆</button>
+
+<script>
+    let allCharacters = [];
+
+    // 🚨 新增：鸣潮元素颜色映射字典
+    const elementColors = {
+        '衍射': 'rgba(241, 196, 15, 0.6)',  // 金光
+        '导电': 'rgba(155, 89, 182, 0.6)',  // 紫光
+        '气动': 'rgba(46, 204, 113, 0.6)',   // 绿光
+        '冷凝': 'rgba(52, 152, 219, 0.6)',   // 蓝光
+        '热熔': 'rgba(231, 76, 60, 0.6)',   // 红光
+        '湮灭': 'rgba(232, 67, 147, 0.6)'    // 粉紫光/暗红光
+    };
+
+    async function checkLogin() {
+        try {
+            const response = await fetch('/api/user/info');
+            const user = await response.json();
+            const bar = document.getElementById('userBar');
+
+            if (user && user.nickname) {
+                // 🚨 注意看这里：我把 span 换成了 a 标签，并且加上了 href="profile.html"
+                bar.innerHTML = `欢迎回来，<a href="profile.html" style="color:#f39c12; font-weight:bold; text-decoration:underline; cursor:pointer;">${user.nickname}</a> |
+                     <a href="javascript:void(0)" onclick="logout()" style="color:#e74c3c; text-decoration:none; margin-left:8px;">[退出]</a>`;
+            }
+        } catch (error) {
+            console.log("当前未登录");
+        }
+    }
+
+    async function logout() {
+        if(confirm("确定要退出终端连接吗？")) {
+            await fetch('/api/user/logout');
+            window.location.reload();
+        }
+    }
+
+    async function loadCharacters() {
+        try {
+            const response = await fetch('/api/characters');
+            allCharacters = await response.json();
+            renderCards(allCharacters);
+        } catch (error) {
+            console.error('加载失败:', error);
+        }
+    }
+
+    function renderCards(dataList) {
+        const listDiv = document.getElementById('charList');
+        listDiv.innerHTML = '';
+        if (dataList.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; width:100%; color:#666; font-size: 18px;">未发现匹配的共鸣者档案...</p>';
+            return;
+        }
+        dataList.forEach(char => {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            // 🚨 注入特效：根据角色属性动态设置 CSS 变量
+            const glowColor = elementColors[char.element] || 'rgba(243, 156, 18, 0.6)';
+            card.style.setProperty('--elem-color', glowColor);
+
+            card.onclick = () => window.location.href = `detail.html?id=${char.id}`;
+            card.innerHTML = `
+                <img src="${char.imageUrl}" class="card-img" alt="${char.name}">
+                <div class="card-info">
+                    <p class="card-name">${char.name}</p>
+                    <span class="tag rarity-${char.rarity}">${char.rarity}星</span>
+                    <span class="tag" style="color: #3498db; border-color: #3498db;">${char.element}</span>
+                    <p class="desc">${char.description}</p>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    function applyFilters() {
+        const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+        const element = document.getElementById('elementFilter').value;
+        const rarity = document.getElementById('rarityFilter').value;
+
+        const filtered = allCharacters.filter(char => {
+            const matchKeyword = char.name.toLowerCase().includes(keyword) || char.element.includes(keyword);
+            const matchElement = (element === '全部') || (char.element === element);
+            const matchRarity = (rarity === '0') || (char.rarity == rarity);
+            return matchKeyword && matchElement && matchRarity;
+        });
+        renderCards(filtered);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('elementFilter').addEventListener('change', applyFilters);
+    document.getElementById('rarityFilter').addEventListener('change', applyFilters);
+
+    // 🚨 新增：监听滚动事件，控制回到顶部按钮的显示与隐藏
+    window.addEventListener('scroll', () => {
+        const btn = document.getElementById('backToTop');
+        if (window.scrollY > 300) {
+            btn.style.display = 'block';
+        } else {
+            btn.style.display = 'none';
+        }
+    });
+
+    checkLogin();
+    loadCharacters();
+</script>
+
+</body>
+</html>

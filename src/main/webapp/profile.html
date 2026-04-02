@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>终端中心 - 个人档案</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            font-family: "Microsoft YaHei", sans-serif;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .nav-bar {
+            margin-bottom: 30px;
+        }
+
+        .nav-bar a {
+            color: #f39c12;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .profile-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #161616;
+            border-radius: 20px;
+            border: 1px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部用户信息卡片 */
+        .user-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 40px;
+            border-bottom: 2px solid #f39c12;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #333;
+            border: 3px solid #f39c12;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .user-info h1 {
+            margin: 0 0 10px 0;
+            color: #fff;
+        }
+
+        .user-info p {
+            margin: 0;
+            color: #aaa;
+        }
+
+        /* 攻略列表区域 */
+        .content-area {
+            padding: 40px;
+        }
+
+        .strategy-card {
+            background: #222;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #f39c12;
+            transition: transform 0.2s;
+        }
+
+        .strategy-card:hover {
+            transform: translateX(10px);
+            background: #2a2a2a;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            color: #f39c12;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .char-tag {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-left: 15px;
+            border: 1px solid #3498db;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+    <a href="index.html">← 返回图鉴大厅</a>
+</div>
+
+<div class="profile-container">
+    <div class="user-header">
+        <div class="avatar">👤</div>
+        <div class="user-info">
+            <h1 id="nickname">加载中...</h1>
+            <p>终端认证漂泊者 | 档案库贡献者</p>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <h2 style="border-bottom: 1px solid #333; padding-bottom: 10px;">我发布的攻略记录</h2>
+        <div id="myStrategyList">
+            <p style="color: #666;">正在同步数据...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. 获取当前登录用户信息
+    async function loadUserInfo() {
+        try {
+            const response = await fetch('/api/user/info');
+            const user = await response.json();
+
+            if (user && user.nickname) {
+                document.getElementById('nickname').innerText = user.nickname;
+                loadMyStrategies(); // 用户验证成功后，去拉取他的攻略
+            } else {
+                throw new Error("未登录");
+            }
+        } catch (error) {
+            alert("⚠️ 终端验证失败，请先登录！");
+            window.location.href = 'login.html';
+        }
+    }
+
+    // 2. 获取我的攻略列表
+    async function loadMyStrategies() {
+        try {
+            const response = await fetch('/api/user/myStrategies');
+            const data = await response.json();
+
+            if (data.error === 'nologin') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const listDiv = document.getElementById('myStrategyList');
+            listDiv.innerHTML = '';
+
+            if (data.length === 0) {
+                listDiv.innerHTML = '<p style="color:#666; font-style:italic;">你还没有发布过任何攻略，快去图鉴里分享你的见解吧！</p>';
+                return;
+            }
+
+            data.forEach(item => {
+                const date = new Date(item.createTime).toLocaleString();
+                const card = document.createElement('div');
+                card.className = 'strategy-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div style="display: flex; align-items: center;">
+                            <p class="card-title">${item.title}</p>
+                            <span class="char-tag"># ${item.characterName}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteMyPost(${item.id})">删除</button>
+                    </div>
+                    <p style="color: #ccc; font-size: 14px; margin: 0 0 10px 0; white-space: pre-wrap;">${item.content}</p>
+                    <div style="font-size: 12px; color: #666; display: flex; justify-content: space-between;">
+                        <span>发布时间：${date}</span>
+                        <span>👁️ ${item.views || 0} 次浏览</span>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            });
+        } catch (error) {
+            console.error('获取攻略失败', error);
+        }
+    }
+
+    // 3. 删除攻略逻辑 (直接复用你写好的接口)
+    async function deleteMyPost(strategyId) {
+        if (!confirm("确定要永久抹除这条攻略档案吗？")) return;
+
+        try {
+            // 这里调用的是你之前写好的 DeleteStrategyServlet
+            const response = await fetch(`/api/strategy/delete?id=${strategyId}`);
+            const result = await response.text();
+
+            if (result === 'success') {
+                alert("抹除成功！");
+                loadMyStrategies(); // 重新加载列表，实现无感刷新
+            } else {
+                alert("删除失败，请稍后重试。");
+            }
+        } catch (error) {
+            console.error("删除出错", error);
+        }
+    }
+
+    // 页面加载时执行
+    loadUserInfo();
+</script>
+
+</body>
+</html>
