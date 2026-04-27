@@ -81,6 +81,27 @@ public class StrategyDao {
             DBUtil.close(conn, pstmt, null);
         }
     }
+    
+    /**
+     * 【管理员专用】强制删除任意帖子，不需要匹配 user_id
+     */
+    public boolean adminDeleteStrategy(int strategyId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DBUtil.getConnection();
+            String sql = "DELETE FROM strategy_guide WHERE id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, strategyId);
+
+            return pstmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DBUtil.close(conn, pstmt, null);
+        }
+    }
 
     /**
      * 保存一条新的攻略/评论
@@ -131,6 +152,47 @@ public class StrategyDao {
                 guide.setContent(rs.getString("content"));
                 guide.setCreateTime(rs.getTimestamp("create_time"));
                 guide.setAuthorName(rs.getString("nickname"));
+                list.add(guide);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            DBUtil.close(conn, pstmt, rs);
+        }
+        return list;
+    }
+    
+    /**
+     * 【管理员功能】查询所有的攻略列表
+     */
+    public List<StrategyGuide> getAllStrategies() {
+        List<StrategyGuide> list = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            // 三表联查：查询攻略、用户昵称、角色名称
+            String sql = "SELECT s.*, u.nickname as author_name, c.name as character_name " +
+                         "FROM strategy_guide s " +
+                         "LEFT JOIN user u ON s.user_id = u.id " +
+                         "LEFT JOIN character_info c ON s.character_id = c.id " +
+                         "ORDER BY s.id DESC";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                StrategyGuide guide = new StrategyGuide();
+                guide.setId(rs.getInt("id"));
+                guide.setCharacterId(rs.getInt("character_id"));
+                guide.setUserId(rs.getInt("user_id"));
+                guide.setTitle(rs.getString("title"));
+                guide.setContent(rs.getString("content"));
+                guide.setViews(rs.getInt("views"));
+                guide.setCreateTime(rs.getTimestamp("create_time"));
+                guide.setAuthorName(rs.getString("author_name"));
+                guide.setCharacterName(rs.getString("character_name"));
+                
                 list.add(guide);
             }
         } catch (Exception e) {

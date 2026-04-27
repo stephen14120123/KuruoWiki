@@ -40,4 +40,71 @@ public class EchoDao {
         }
         return list;
     }
+
+    // ==========================================
+    // 新增：后台管理员增删改查方法
+    // ==========================================
+
+    public boolean addEcho(EchoInfo e) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DBUtil.getConnection();
+            String sql = "INSERT INTO echo_info (name, cost, sonata_effect, skill_desc, image_url) VALUES (?, ?, ?, ?, ?)";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, e.getName());
+            pstmt.setInt(2, e.getCost() != null ? e.getCost() : 1);
+            pstmt.setString(3, e.getSonataEffect());
+            pstmt.setString(4, e.getSkillDesc());
+            pstmt.setString(5, e.getImageUrl());
+
+            return pstmt.executeUpdate() > 0;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            DBUtil.close(conn, pstmt, null);
+        }
+    }
+
+    public boolean updateEcho(EchoInfo e) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DBUtil.getConnection();
+            String sql = "UPDATE echo_info SET name=?, cost=?, sonata_effect=?, skill_desc=?, image_url=? WHERE id=?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, e.getName());
+            pstmt.setInt(2, e.getCost() != null ? e.getCost() : 1);
+            pstmt.setString(3, e.getSonataEffect());
+            pstmt.setString(4, e.getSkillDesc());
+            pstmt.setString(5, e.getImageUrl());
+            pstmt.setInt(6, e.getId());
+
+            return pstmt.executeUpdate() > 0;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            DBUtil.close(conn, pstmt, null);
+        }
+    }
+
+    public boolean deleteEcho(int id) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DBUtil.getConnection();
+            String sql = "DELETE FROM echo_info WHERE id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, id);
+
+            return pstmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DBUtil.close(conn, pstmt, null);
+        }
+    }
 }

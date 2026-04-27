@@ -1,0 +1,16 @@
+server:
+  port: 8088 # 将端口从 8080 修改为 8088
+  # 🚨 已经移除了 context-path，让项目直接运行在根目录 (localhost:8088/)
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/acg_community_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.wiki.entity
