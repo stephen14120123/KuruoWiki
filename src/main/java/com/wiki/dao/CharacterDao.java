@@ -2,13 +2,13 @@ package com.wiki.dao;
 
 import com.wiki.entity.CharacterInfo;
 import com.wiki.utils.DBUtil;
-
+import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-
+@Repository
 public class CharacterDao {
 
     /**

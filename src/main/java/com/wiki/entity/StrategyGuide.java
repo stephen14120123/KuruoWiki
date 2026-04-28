@@ -1,5 +1,5 @@
 package com.wiki.entity;
-
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 import java.util.Date;
 
@@ -8,6 +8,7 @@ public class StrategyGuide {
     private Integer id;
     private Integer userId;         // 发帖人ID
     private Integer characterId;    // 关联的角色ID
+    @NotBlank(message = "【数据验证拦截】攻略标题不能为空！")
     private String title;           // 帖子标题
     private String content;         // 帖子正文
     private Integer views;          // 浏览量
@@ -16,4 +17,6 @@ public class StrategyGuide {
     // 下面这两个是扩展字段，数据库表里没有，但在前端显示时特别有用
     private String authorName;      // 作者昵称
     private String characterName;   // 关联的角色名
+
+    private User author;
 }

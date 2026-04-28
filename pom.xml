@@ -4,18 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- 1. 引入 Spring Boot 的父工程 (所有依赖版本的总管) -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.7.18</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+        <relativePath/> </parent>
 
     <groupId>com.Wiki</groupId>
     <artifactId>KuruoWiki</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <!-- 🚨 重点：将 war 改为 jar，Spring Boot 默认打包为 jar 并内嵌 Tomcat -->
     <packaging>jar</packaging>
 
     <name>KuruoWiki SpringBoot</name>
@@ -28,51 +25,66 @@
     </properties>
 
     <dependencies>
-        <!-- 2. Spring Boot Web 核心依赖 (包含了 Spring MVC, Tomcat 等) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- 3. MyBatis 与 Spring Boot 的整合包 -->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>1.4.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>2.3.1</version>
         </dependency>
 
-        <!-- 4. MySQL 驱动 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version>
         </dependency>
 
-        <!-- 5. Lombok (简化 JavaBean) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- 6. FastJson (或者以后换成 Jackson，Spring Boot 默认带 Jackson) -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.83</version>
         </dependency>
 
-        <!-- 7. Spring Boot 测试依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- 8. Spring Boot Maven 插件，用于将项目打包成可执行的 jar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -87,5 +99,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

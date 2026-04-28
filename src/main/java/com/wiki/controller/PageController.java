@@ -10,13 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
  */
 @Controller
 public class PageController {
-
-    /**
-     * 当用户访问根路径 ("/") 时，自动转发到 index.html 页面
-     * @return "index" 会被 Spring Boot 的视图解析器找到并返回 /static/index.html
-     */
     @GetMapping("/")
     public String index() {
-        return "index";
+        // 使用 forward: 前缀，告诉 Spring 去 static 目录下找 index.html
+        return "forward:/index.html";
     }
 }

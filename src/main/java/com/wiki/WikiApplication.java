@@ -4,12 +4,11 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.context.annotation.ComponentScan;
+// 👈 注意：这里那一排 @ComponentScan("com.wiki.controller") 已经被删掉了！
 
 @SpringBootApplication
-@MapperScan("com.wiki.dao") // 扫描 MyBatis 的 Mapper 接口
-@ServletComponentScan       // 兼容旧的 Servlet
-@ComponentScan("com.wiki.controller") // 强制扫描 Controller 包
+@MapperScan("com.wiki.dao")
+@ServletComponentScan
 public class WikiApplication {
 
     public static void main(String[] args) {
