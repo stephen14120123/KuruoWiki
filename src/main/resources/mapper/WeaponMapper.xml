@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wiki.dao.WeaponMapper">
+
+    <select id="getAllWeapons" resultType="WeaponInfo">
+        SELECT * FROM weapon_info ORDER BY rarity DESC, id ASC
+    </select>
+
+    <insert id="insertWeapon" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO weapon_info (name, rarity, weapon_type, base_atk, sub_stat_type, sub_stat_value, skill_name, skill_desc, image_url)
+        VALUES (#{name}, #{rarity}, #{weaponType}, #{baseAtk}, #{subStatType}, #{subStatValue}, #{skillName}, #{skillDesc}, #{imageUrl})
+    </insert>
+
+    <update id="updateWeapon">
+        UPDATE weapon_info
+        SET name=#{name}, rarity=#{rarity}, weapon_type=#{weaponType}, base_atk=#{baseAtk},
+            sub_stat_type=#{subStatType}, sub_stat_value=#{subStatValue}, skill_name=#{skillName},
+            skill_desc=#{skillDesc}, image_url=#{imageUrl}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="deleteWeapon">
+        DELETE FROM weapon_info WHERE id = #{id}
+    </delete>
+
+</mapper>

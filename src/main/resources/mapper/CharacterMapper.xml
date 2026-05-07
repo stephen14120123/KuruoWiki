@@ -6,7 +6,28 @@
 <mapper namespace="com.wiki.dao.CharacterMapper">
 
     <select id="getAllCharacters" resultType="CharacterInfo">
-        SELECT * FROM character_info
+        SELECT * FROM character_info ORDER BY rarity DESC, id ASC
     </select>
+
+    <select id="getCharacterById" resultType="CharacterInfo">
+        SELECT * FROM character_info WHERE id = #{id}
+    </select>
+
+    <insert id="insertCharacter" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO character_info (name, rarity, element, weapon_type, description, image_url, hp, atk, def, crit, energy)
+        VALUES (#{name}, #{rarity}, #{element}, #{weaponType}, #{description}, #{imageUrl}, #{hp}, #{atk}, #{def}, #{crit}, #{energy})
+    </insert>
+
+    <update id="updateCharacter">
+        UPDATE character_info
+        SET name=#{name}, rarity=#{rarity}, element=#{element}, weapon_type=#{weaponType},
+            description=#{description}, image_url=#{imageUrl}, hp=#{hp}, atk=#{atk}, def=#{def},
+            crit=#{crit}, energy=#{energy}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="deleteCharacter">
+        DELETE FROM character_info WHERE id = #{id}
+    </delete>
 
 </mapper>

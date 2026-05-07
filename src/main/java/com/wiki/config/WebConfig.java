@@ -14,8 +14,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 注册拦截器，并告诉它拦截哪些路径 (这里假设拦截 /api/strategy/add 发布攻略的接口)
         registry.addInterceptor(loginInterceptor)
-                .addPathPatterns("/api/strategy/add");
+                .addPathPatterns("/api/strategies/**") // 保护所有攻略操作
+                .excludePathPatterns("/api/strategies"); // 允许游客查看列表 (GET请求)
     }
 }

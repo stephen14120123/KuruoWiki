@@ -6,6 +6,15 @@ import java.util.List;
 
 @Mapper
 public interface StrategyMapper {
-    // 实验七测试接口：获取攻略列表，并级联查出对应的作者信息
-    List<StrategyGuide> getStrategyWithCascade();
+    // 根据角色ID查询攻略列表（级联查出作者昵称）
+    List<StrategyGuide> getStrategiesByCharId(Integer charId);
+
+    // 新增攻略
+    int insertStrategy(StrategyGuide strategy);
+
+    // 根据ID查询单条攻略（用于校验权限）
+    StrategyGuide getById(Integer id);
+
+    // 删除攻略
+    int deleteStrategy(Integer id);
 }

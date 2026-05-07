@@ -1,30 +1,30 @@
 package com.wiki.interceptor;
 
-import com.wiki.entity.User;
+import com.wiki.utils.JwtUtil;
+import io.jsonwebtoken.Claims;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
-/**
- * 实验十一：Spring MVC 拦截器
- * 用于检查用户是否登录
- */
 @Component
 public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("currentUser");
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true; // 放行预检请求
 
-        // 如果没登录，拦截请求，返回错误提示
-        if (user == null) {
-            response.setContentType("application/json;charset=utf-8");
-            response.getWriter().print("{\"error\":\"【拦截器生效】您还未登录，请先登录！\"}");
-            return false; // false 代表拦截，不放行
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            Claims claims = JwtUtil.parseToken(token);
+            if (claims != null) {
+                request.setAttribute("currentUserId", claims.get("userId"));
+                return true; // 验证通过，放行
+            }
         }
-        return true; // true 代表放行
+
+        response.setContentType("application/json;charset=utf-8");
+        response.getWriter().print("{\"code\": 401, \"message\": \"【终端拦截】验证过期，请重新登录！\", \"data\": null}");
+        return false;
     }
 }

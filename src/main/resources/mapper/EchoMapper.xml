@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wiki.dao.EchoMapper">
+
+    <select id="getAllEchoes" resultType="EchoInfo">
+        SELECT * FROM echo_info ORDER BY cost DESC, id ASC
+    </select>
+
+    <insert id="insertEcho" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO echo_info (name, cost, sonata_effect, skill_desc, image_url)
+        VALUES (#{name}, #{cost}, #{sonataEffect}, #{skillDesc}, #{imageUrl})
+    </insert>
+
+    <update id="updateEcho">
+        UPDATE echo_info
+        SET name=#{name}, cost=#{cost}, sonata_effect=#{sonataEffect},
+            skill_desc=#{skillDesc}, image_url=#{imageUrl}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="deleteEcho">
+        DELETE FROM echo_info WHERE id = #{id}
+    </delete>
+
+</mapper>

@@ -14,7 +14,19 @@ public class StrategyService {
     @Autowired
     private StrategyMapper strategyMapper;
 
-    public List<StrategyGuide> testCascade() {
-        return strategyMapper.getStrategyWithCascade();
+    public List<StrategyGuide> getByCharacterId(Integer charId) {
+        return strategyMapper.getStrategiesByCharId(charId);
+    }
+
+    public boolean addStrategy(StrategyGuide strategy) {
+        return strategyMapper.insertStrategy(strategy) > 0;
+    }
+
+    public StrategyGuide getById(Integer id) {
+        return strategyMapper.getById(id);
+    }
+
+    public boolean removeStrategy(Integer id) {
+        return strategyMapper.deleteStrategy(id) > 0;
     }
 }
