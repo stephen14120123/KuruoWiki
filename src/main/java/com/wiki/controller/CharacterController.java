@@ -1,5 +1,6 @@
 package com.wiki.controller;
 
+import com.wiki.common.RequiresRole;
 import com.wiki.common.Result;
 import com.wiki.entity.CharacterInfo;
 import com.wiki.service.CharacterService;
@@ -31,22 +32,25 @@ public class CharacterController {
         return character != null ? Result.success(character) : Result.error("未找到该角色");
     }
 
-    // 3. 后台：新增角色 (POST /api/characters)
+    // 3. 后台：新增角色 (POST /api/characters) - 需要管理员权限
     @PostMapping
+    @RequiresRole(1)
     public Result<String> addCharacter(@RequestBody CharacterInfo character) {
         boolean success = characterService.saveCharacter(character);
         return success ? Result.success("添加成功") : Result.error("添加失败");
     }
 
-    // 4. 后台：修改角色 (PUT /api/characters)
+    // 4. 后台：修改角色 (PUT /api/characters) - 需要管理员权限
     @PutMapping
+    @RequiresRole(1)
     public Result<String> updateCharacter(@RequestBody CharacterInfo character) {
         boolean success = characterService.updateCharacter(character);
         return success ? Result.success("修改成功") : Result.error("修改失败");
     }
 
-    // 5. 后台：删除角色 (DELETE /api/characters/1)
+    // 5. 后台：删除角色 (DELETE /api/characters/1) - 需要管理员权限
     @DeleteMapping("/{id}")
+    @RequiresRole(1)
     public Result<String> deleteCharacter(@PathVariable Integer id) {
         boolean success = characterService.deleteCharacter(id);
         return success ? Result.success("删除成功") : Result.error("删除失败");

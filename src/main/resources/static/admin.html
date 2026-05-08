@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>KuruoWiki - 管理员后台</title>
-    <!-- 引入 Bootstrap 5 (作为快速搭建界面的方案) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { padding-top: 50px; }
@@ -22,7 +21,6 @@
 </head>
 <body>
 
-<!-- 顶部导航 -->
 <nav class="navbar navbar-dark bg-dark fixed-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">KuruoWiki 管理后台</a>
@@ -33,7 +31,6 @@
     </div>
 </nav>
 
-<!-- 左侧边栏 -->
 <div class="sidebar" style="width: 200px;" id="sidebar">
     <a onclick="loadUsers()" id="nav-users">👤 用户管理</a>
     <a onclick="loadStrategies()" id="nav-strategies">📚 攻略管理</a>
@@ -44,7 +41,6 @@
     <a href="/">🏠 返回前台首页</a>
 </div>
 
-<!-- 右侧主内容区 -->
 <div class="main-content">
     <div class="header-actions">
         <h2 id="pageTitle">欢迎来到管理后台</h2>
@@ -52,43 +48,47 @@
     </div>
     <hr>
 
-    <!-- 数据表格容器 -->
     <div id="tableContainer">
         <p class="text-muted">请点击左侧菜单查看数据。</p>
     </div>
 </div>
 
-<!-- 统一的模态框 (Modal) 用于新增和编辑图鉴数据 -->
 <div class="modal fade" id="dataModal" tabindex="-1" aria-labelledby="dataModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="dataModalLabel">编辑数据</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modalBody">
-        <!-- 动态表单将渲染在这里 -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary" onclick="saveData()">保存</button>
-      </div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dataModalLabel">编辑数据</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveData()">保存</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
-<!-- 引入 Bootstrap JS (需要用到弹窗) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     let currentModule = ''; // 记录当前在哪个模块 (users, strategies, characters, weapons, echoes)
     let modalInstance = null; // Bootstrap modal 实例
 
+    // 获取 Token 的辅助方法
+    function getToken() {
+        return localStorage.getItem('jwt_token') || '';
+    }
+
     // --- 页面初始化与权限验证 ---
     window.onload = function() {
         modalInstance = new bootstrap.Modal(document.getElementById('dataModal'));
 
-        fetch('/api/user/info')
+        // 发起请求时带上 headers
+        fetch('/api/user/info', {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        })
             .then(res => res.json())
             .then(data => {
                 let user = null;
@@ -122,10 +122,12 @@
         currentModule = 'users';
         setActiveNav('nav-users');
         document.getElementById('pageTitle').innerText = '用户管理';
-        document.getElementById('addBtn').style.display = 'none'; // 用户模块暂不提供后台添加
+        document.getElementById('addBtn').style.display = 'none';
         document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
 
-        fetch('/api/admin/users').then(res => res.json()).then(data => {
+        fetch('/api/admin/users', {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        }).then(res => res.json()).then(data => {
             if(data.code !== 200) return alert(data.message);
             let html = `
                 <table class="table table-striped table-hover">
@@ -148,8 +150,15 @@
 
     function deleteUser(id) {
         if(!confirm('确定要删除该用户吗？此操作不可逆！')) return;
-        fetch('/api/admin/user/delete', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'userId=' + id })
-        .then(res => res.json()).then(data => { alert(data.message); if(data.code === 200) loadUsers(); });
+        fetch('/api/admin/user/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + getToken()
+            },
+            body: 'userId=' + id
+        })
+            .then(res => res.json()).then(data => { alert(data.message); if(data.code === 200) loadUsers(); });
     }
 
     // ==========================================
@@ -159,10 +168,12 @@
         currentModule = 'strategies';
         setActiveNav('nav-strategies');
         document.getElementById('pageTitle').innerText = '攻略管理';
-        document.getElementById('addBtn').style.display = 'none'; // 攻略由前台用户添加
+        document.getElementById('addBtn').style.display = 'none';
         document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
 
-        fetch('/api/admin/strategies').then(res => res.json()).then(data => {
+        fetch('/api/admin/strategies', {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        }).then(res => res.json()).then(data => {
             if(data.code !== 200) return alert(data.message);
             let html = `
                 <table class="table table-striped table-hover">
@@ -184,8 +195,15 @@
 
     function deleteStrategy(id) {
         if(!confirm('确定要强制删除这条攻略吗？')) return;
-        fetch('/api/admin/strategy/delete', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'strategyId=' + id })
-        .then(res => res.json()).then(data => { alert(data.message); if(data.code === 200) loadStrategies(); });
+        fetch('/api/admin/strategy/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + getToken()
+            },
+            body: 'strategyId=' + id
+        })
+            .then(res => res.json()).then(data => { alert(data.message); if(data.code === 200) loadStrategies(); });
     }
 
     // ==========================================
@@ -199,8 +217,9 @@
         document.getElementById('addBtn').innerText = '＋ 新增角色';
         document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
 
-        fetch('/api/characters').then(res => res.json()).then(data => {
-            // 把数据挂载到全局变量方便编辑时读取
+        fetch('/api/admin/characters', {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        }).then(res => res.json()).then(data => {
             window.characterData = data;
             let html = `
                 <table class="table table-striped table-hover align-middle">
@@ -234,7 +253,9 @@
         document.getElementById('addBtn').innerText = '＋ 新增武器';
         document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
 
-        fetch('/api/weapon/list').then(res => res.json()).then(data => {
+        fetch('/api/admin/weapons', {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        }).then(res => res.json()).then(data => {
             window.weaponData = data;
             let html = `
                 <table class="table table-striped table-hover align-middle">
@@ -268,7 +289,9 @@
         document.getElementById('addBtn').innerText = '＋ 新增声骸';
         document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
 
-        fetch('/api/echo/list').then(res => res.json()).then(data => {
+        fetch('/api/admin/echoes', {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        }).then(res => res.json()).then(data => {
             window.echoData = data;
             let html = `
                 <table class="table table-striped table-hover align-middle">
@@ -292,12 +315,11 @@
     }
 
     // ==========================================
-    // 核心表单与提交逻辑 (统一处理 角色、武器、声骸)
+    // 核心表单与提交逻辑
     // ==========================================
-
     function openAddModal() {
         document.getElementById('dataModalLabel').innerText = `新增 ${getModuleName()}`;
-        renderForm(null); // null表示空表单
+        renderForm(null);
         modalInstance.show();
     }
 
@@ -353,7 +375,6 @@
                         <label class="form-label">技能描述</label>
                         <textarea class="form-control" name="description" rows="3">${data ? data.description : ''}</textarea>
                     </div>
-                    <!-- 战斗数值面板 -->
                     <div class="col-md-3 mb-2"><label class="form-label">生命值 (HP)</label><input type="number" class="form-control" name="hp" value="${data ? data.hp : 0}"></div>
                     <div class="col-md-3 mb-2"><label class="form-label">攻击力 (ATK)</label><input type="number" class="form-control" name="atk" value="${data ? data.atk : 0}"></div>
                     <div class="col-md-3 mb-2"><label class="form-label">防御力 (DEF)</label><input type="number" class="form-control" name="def" value="${data ? data.def : 0}"></div>
@@ -392,44 +413,43 @@
         document.getElementById('modalBody').innerHTML = html;
     }
 
-    // 保存数据 (提交表单)
+    // 保存数据
     function saveData() {
         const form = document.getElementById('dataForm');
-        // HTML5 原生表单校验
         if(!form.reportValidity()) return;
 
         const formData = new FormData(form);
-        const isUpdate = formData.get('id') !== ''; // 有 id 则是更新，没有则是新增
+        const isUpdate = formData.get('id') !== '';
         formData.append('action', isUpdate ? 'update' : 'add');
 
-        // 动态决定请求的 API
         let apiUrl = '';
         if(currentModule === 'characters') apiUrl = '/api/admin/character';
         if(currentModule === 'weapons') apiUrl = '/api/admin/weapon';
         if(currentModule === 'echoes') apiUrl = '/api/admin/echo';
 
-        // 由于 FormData 转换为 application/x-www-form-urlencoded
         const urlEncodedData = new URLSearchParams(formData).toString();
 
         fetch(apiUrl, {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + getToken()
+            },
             body: urlEncodedData
         })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message);
-            if(data.code === 200) {
-                modalInstance.hide();
-                // 刷新当前模块表格
-                if(currentModule === 'characters') loadCharacters();
-                if(currentModule === 'weapons') loadWeapons();
-                if(currentModule === 'echoes') loadEchoes();
-            }
-        });
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if(data.code === 200) {
+                    modalInstance.hide();
+                    if(currentModule === 'characters') loadCharacters();
+                    if(currentModule === 'weapons') loadWeapons();
+                    if(currentModule === 'echoes') loadEchoes();
+                }
+            });
     }
 
-    // 通用的删除数据方法
+    // 删除数据
     function deleteData(moduleName, id) {
         if(!confirm('确定要删除这条档案吗？删除后前台将无法展示该数据！')) return;
 
@@ -437,23 +457,31 @@
 
         fetch(apiUrl, {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + getToken()
+            },
             body: `action=delete&id=${id}`
         })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message);
-            if(data.code === 200) {
-                if(currentModule === 'characters') loadCharacters();
-                if(currentModule === 'weapons') loadWeapons();
-                if(currentModule === 'echoes') loadEchoes();
-            }
-        });
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if(data.code === 200) {
+                    if(currentModule === 'characters') loadCharacters();
+                    if(currentModule === 'weapons') loadWeapons();
+                    if(currentModule === 'echoes') loadEchoes();
+                }
+            });
     }
 
     // --- 退出登录 ---
     function logout() {
-        fetch('/api/user/logout').then(() => { window.location.href = '/login.html'; });
+        fetch('/api/user/logout', {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        }).then(() => {
+            localStorage.removeItem('jwt_token'); // 退出时顺便清空本地的 Token
+            window.location.href = '/login.html';
+        });
     }
 </script>
 

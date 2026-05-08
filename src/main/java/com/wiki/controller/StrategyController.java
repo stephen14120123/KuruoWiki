@@ -25,7 +25,7 @@ public class StrategyController {
     // 2. 发布新攻略 (POST /api/strategies)
     @PostMapping
     public Result<String> add(@RequestBody StrategyGuide strategy, HttpServletRequest request) {
-        // 🚨 核心：从拦截器存放的 Request 属性中提取当前登录人的 userId
+        // 从拦截器存放的 Request 属性中提取当前登录人的 userId
         Integer currentUserId = (Integer) request.getAttribute("currentUserId");
         strategy.setUserId(currentUserId);
 
@@ -33,7 +33,24 @@ public class StrategyController {
                 Result.success("攻略已同步至终端") : Result.error("同步失败");
     }
 
-    // 3. 删除攻略 (DELETE /api/strategies/1)
+    // 3. 编辑攻略 (PUT /api/strategies) - 只能编辑自己的攻略
+    @PutMapping
+    public Result<String> update(@RequestBody StrategyGuide strategy, HttpServletRequest request) {
+        Integer currentUserId = (Integer) request.getAttribute("currentUserId");
+        StrategyGuide oldStrategy = strategyService.getById(strategy.getId());
+
+        if (oldStrategy == null) return Result.error("记录不存在");
+
+        // 安全防线：只有发帖人自己才能编辑
+        if (!oldStrategy.getUserId().equals(currentUserId)) {
+            return Result.error("越权操作：只能编辑自己的攻略");
+        }
+
+        return strategyService.updateStrategy(strategy) ?
+                Result.success("攻略已更新") : Result.error("更新失败");
+    }
+
+    // 4. 删除攻略 (DELETE /api/strategies/1)
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Integer id, HttpServletRequest request) {
         Integer currentUserId = (Integer) request.getAttribute("currentUserId");
@@ -41,7 +58,7 @@ public class StrategyController {
 
         if (oldStrategy == null) return Result.error("记录不存在");
 
-        // 🛡️ 安全防线：只有发帖人自己才能删除
+        // 安全防线：只有发帖人自己才能删除
         if (!oldStrategy.getUserId().equals(currentUserId)) {
             return Result.error("越权操作：终端拒绝抹除他人记录");
         }

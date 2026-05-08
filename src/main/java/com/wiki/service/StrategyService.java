@@ -18,12 +18,20 @@ public class StrategyService {
         return strategyMapper.getStrategiesByCharId(charId);
     }
 
+    public List<StrategyGuide> getAllStrategies() {
+        return strategyMapper.getAllStrategies();
+    }
+
     public boolean addStrategy(StrategyGuide strategy) {
         return strategyMapper.insertStrategy(strategy) > 0;
     }
 
     public StrategyGuide getById(Integer id) {
         return strategyMapper.getById(id);
+    }
+
+    public boolean updateStrategy(StrategyGuide strategy) {
+        return strategyMapper.updateStrategy(strategy) > 0;
     }
 
     public boolean removeStrategy(Integer id) {

@@ -10,6 +10,14 @@
         ORDER BY s.create_time DESC
     </select>
 
+    <select id="getAllStrategies" resultType="StrategyGuide">
+        SELECT s.*, u.nickname as authorName, c.name as characterName
+        FROM strategy_guide s
+                 LEFT JOIN user u ON s.user_id = u.id
+                 LEFT JOIN character_info c ON s.character_id = c.id
+        ORDER BY s.create_time DESC
+    </select>
+
     <insert id="insertStrategy" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO strategy_guide (user_id, character_id, title, content)
         VALUES (#{userId}, #{characterId}, #{title}, #{content})
@@ -18,6 +26,12 @@
     <select id="getById" resultType="StrategyGuide">
         SELECT * FROM strategy_guide WHERE id = #{id}
     </select>
+
+    <update id="updateStrategy">
+        UPDATE strategy_guide
+        SET title = #{title}, content = #{content}
+        WHERE id = #{id}
+    </update>
 
     <delete id="deleteStrategy">
         DELETE FROM strategy_guide WHERE id = #{id}

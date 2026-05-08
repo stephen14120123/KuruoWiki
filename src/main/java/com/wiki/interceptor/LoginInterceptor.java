@@ -13,12 +13,18 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true; // 放行预检请求
 
+        // GET 请求到 /api/strategies 不需要登录（只是查看攻略）
+        if ("GET".equalsIgnoreCase(request.getMethod()) && request.getRequestURI().startsWith("/api/strategies")) {
+            return true;
+        }
+
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
             Claims claims = JwtUtil.parseToken(token);
             if (claims != null) {
                 request.setAttribute("currentUserId", claims.get("userId"));
+                request.setAttribute("userRole", claims.get("role")); // 存储用户角色
                 return true; // 验证通过，放行
             }
         }
