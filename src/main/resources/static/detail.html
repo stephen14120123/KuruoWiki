@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>共鸣者档案详情</title>
+    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Three.js Core -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         :root {
             --primary-color: #f39c12;
@@ -76,10 +81,10 @@
             }
         }
 
-        /* 左侧：立绘大图 */
+        /* 左侧：3D展示区域 */
         .left-panel {
             flex: 1;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(20, 20, 30, 0.6) 100%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 30, 0.8) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -96,17 +101,70 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at center, rgba(243, 156, 18, 0.1) 0%, transparent 70%);
+            background: radial-gradient(circle at center, rgba(243, 156, 18, 0.15) 0%, transparent 70%);
             pointer-events: none;
+            z-index: 1;
         }
 
+        /* Three.js Canvas */
+        #threeCanvas {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        /* 2D立绘图片（备用） */
         #charImg {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            position: relative;
-            z-index: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
             animation: fadeIn 0.6s ease-out;
+            display: none; /* 默认隐藏，使用3D场景 */
+        }
+
+        #charImg.show {
+            display: block;
+        }
+
+        /* 3D加载提示 */
+        .loading-3d {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--primary-color);
+            font-size: 14px;
+            z-index: 3;
+            text-align: center;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* 3D控制提示 */
+        .control-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #999;
+            z-index: 3;
+            border: 1px solid rgba(243, 156, 18, 0.2);
         }
 
         @keyframes fadeIn {
@@ -427,7 +485,18 @@
 
 <div class="container">
     <div class="left-panel">
+        <!-- Three.js 3D Canvas -->
+        <canvas id="threeCanvas"></canvas>
+        <!-- 2D立绘备用 -->
         <img id="charImg" src="" alt="">
+        <!-- 加载提示 -->
+        <div class="loading-3d" id="loading3d">
+            <div>🌟 初始化3D场景...</div>
+        </div>
+        <!-- 控制提示 -->
+        <div class="control-hint">
+            🖱️ 拖拽旋转 | 滚轮缩放
+        </div>
     </div>
     <div class="right-panel">
         <div class="header">
@@ -512,17 +581,43 @@
                     const date = new Date(item.createTime).toLocaleString();
                     const card = document.createElement('div');
                     card.className = 'strategy-card';
-                    card.innerHTML = `
-                        <div class="strategy-header">
-                            <div class="strategy-title">${item.title}</div>
-                            <div class="strategy-meta">
-                                <span>👤 ${item.authorName}</span>
-                                <span>📅 ${date}</span>
-                                <a href="javascript:void(0)" onclick="confirmDelete(${item.id})" class="strategy-delete">[删除]</a>
-                            </div>
-                        </div>
-                        <p class="strategy-content">${item.content}</p>
-                    `;
+                    
+                    // 创建标题元素
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'strategy-title';
+                    titleDiv.textContent = item.title; // 使用textContent防止XSS
+                    
+                    // 创建作者和时间信息
+                    const authorSpan = document.createElement('span');
+                    authorSpan.textContent = '👤 ' + item.authorName;
+                    
+                    const dateSpan = document.createElement('span');
+                    dateSpan.textContent = '📅 ' + date;
+                    
+                    const deleteLink = document.createElement('a');
+                    deleteLink.href = 'javascript:void(0)';
+                    deleteLink.className = 'strategy-delete';
+                    deleteLink.textContent = '[删除]';
+                    deleteLink.onclick = () => confirmDelete(item.id);
+                    
+                    const metaDiv = document.createElement('div');
+                    metaDiv.className = 'strategy-meta';
+                    metaDiv.appendChild(authorSpan);
+                    metaDiv.appendChild(dateSpan);
+                    metaDiv.appendChild(deleteLink);
+                    
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'strategy-header';
+                    headerDiv.appendChild(titleDiv);
+                    headerDiv.appendChild(metaDiv);
+                    
+                    // 创建内容元素
+                    const contentP = document.createElement('p');
+                    contentP.className = 'strategy-content';
+                    contentP.textContent = item.content; // 使用textContent防止XSS
+                    
+                    card.appendChild(headerDiv);
+                    card.appendChild(contentP);
                     listDiv.appendChild(card);
                 });
             }
@@ -536,8 +631,8 @@
 
         const token = localStorage.getItem('jwt_token');
         if (!token) {
-            alert("⚠️ 权限验证失败，请先登录！");
-            window.location.href = 'login.html';
+            showNotification("⚠️ 权限验证失败，请先登录！", "error");
+            setTimeout(() => window.location.href = 'login.html', 1500);
             return;
         }
 
@@ -548,6 +643,14 @@
                     'Authorization': 'Bearer ' + token
                 }
             });
+            
+            if (response.status === 401) {
+                localStorage.removeItem('jwt_token');
+                showNotification("登录已过期，请重新登录", "error");
+                setTimeout(() => window.location.href = 'login.html', 1500);
+                return;
+            }
+            
             const result = await response.json();
 
             if (result.code === 200) {
@@ -555,7 +658,6 @@
                 loadStrategies();
             } else {
                 showNotification(result.message, "error");
-                if (result.code === 401) window.location.href = 'login.html';
             }
         } catch (err) {
             console.error("删除出错", err);
@@ -570,7 +672,7 @@
 
         if (!token) {
             showNotification("⚠️ 请先进行身份验证！", "error");
-            window.location.href = 'login.html';
+            setTimeout(() => window.location.href = 'login.html', 1500);
             return;
         }
 
@@ -595,6 +697,13 @@
                 body: JSON.stringify(data)
             });
 
+            if (response.status === 401) {
+                localStorage.removeItem('jwt_token');
+                showNotification("登录已过期，请重新登录", "error");
+                setTimeout(() => window.location.href = 'login.html', 1500);
+                return;
+            }
+
             const result = await response.json();
             if(result.code === 200) {
                 showNotification("🎉 档案同步成功！", "success");
@@ -603,7 +712,6 @@
                 loadStrategies();
             } else {
                 showNotification(result.message, "error");
-                if (result.code === 401) window.location.href = 'login.html';
             }
         } catch (err) {
             console.error("网络异常", err);
@@ -638,9 +746,31 @@
     function initRadar(data) {
         const chartDom = document.getElementById('radarChart');
         const myChart = echarts.init(chartDom, 'dark');
+        
         const option = {
             backgroundColor: 'transparent',
+            title: {
+                text: '⚡ 能力评估雷达',
+                left: 'center',
+                top: 10,
+                textStyle: {
+                    color: '#f39c12',
+                    fontSize: 16,
+                    fontWeight: 'bold'
+                }
+            },
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                borderColor: '#f39c12',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#fff'
+                }
+            },
             radar: {
+                center: ['50%', '55%'],
+                radius: '65%',
                 indicator: [
                     { name: '生命值', max: 100 },
                     { name: '共鸣效率', max: 100 },
@@ -648,23 +778,305 @@
                     { name: '防御力', max: 100 },
                     { name: '攻击力', max: 100 }
                 ],
-                splitArea: { show: false },
-                axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } },
-                splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } }
+                shape: 'polygon',
+                splitArea: {
+                    show: true,
+                    areaStyle: {
+                        color: [
+                            'rgba(243, 156, 18, 0.05)',
+                            'rgba(243, 156, 18, 0.1)',
+                            'rgba(243, 156, 18, 0.15)',
+                            'rgba(243, 156, 18, 0.2)',
+                            'rgba(243, 156, 18, 0.25)'
+                        ]
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: 'rgba(243, 156, 18, 0.4)',
+                        width: 2
+                    }
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: 'rgba(243, 156, 18, 0.3)',
+                        width: 2
+                    }
+                },
+                name: {
+                    textStyle: {
+                        color: '#f39c12',
+                        fontSize: 13,
+                        fontWeight: 'bold',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        padding: [3, 8],
+                        borderRadius: 4
+                    }
+                }
             },
             series: [{
                 type: 'radar',
+                symbol: 'circle',
+                symbolSize: 8,
                 data: [{
                     value: [data.hp, data.energy, data.crit, data.def, data.atk],
                     name: '能力评估',
-                    areaStyle: { color: 'rgba(243, 156, 18, 0.3)' },
-                    lineStyle: { color: '#f39c12', width: 2 },
-                    itemStyle: { color: '#f39c12' }
-                }]
+                    areaStyle: {
+                        color: {
+                            type: 'radial',
+                            x: 0.5,
+                            y: 0.5,
+                            r: 0.5,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(243, 156, 18, 0.6)' },
+                                { offset: 0.5, color: 'rgba(243, 156, 18, 0.4)' },
+                                { offset: 1, color: 'rgba(243, 156, 18, 0.2)' }
+                            ]
+                        },
+                        shadowBlur: 20,
+                        shadowColor: 'rgba(243, 156, 18, 0.8)',
+                        shadowOffsetX: 0,
+                        shadowOffsetY: 0
+                    },
+                    lineStyle: {
+                        color: '#f39c12',
+                        width: 3,
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(243, 156, 18, 1)'
+                    },
+                    itemStyle: {
+                        color: '#f39c12',
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        shadowBlur: 15,
+                        shadowColor: 'rgba(243, 156, 18, 1)'
+                    },
+                    label: {
+                        show: true,
+                        formatter: function(params) {
+                            return params.value;
+                        },
+                        color: '#fff',
+                        fontSize: 11,
+                        fontWeight: 'bold',
+                        backgroundColor: 'rgba(243, 156, 18, 0.8)',
+                        padding: [2, 6],
+                        borderRadius: 3
+                    }
+                }],
+                animation: true,
+                animationDuration: 2000,
+                animationEasing: 'elasticOut'
             }]
         };
+
         myChart.setOption(option);
+
+        // 呼吸动画效果
+        let breathePhase = 0;
+        setInterval(() => {
+            breathePhase += 0.05;
+            const opacity = 0.4 + Math.sin(breathePhase) * 0.2;
+            
+            myChart.setOption({
+                series: [{
+                    areaStyle: {
+                        color: {
+                            type: 'radial',
+                            x: 0.5,
+                            y: 0.5,
+                            r: 0.5,
+                            colorStops: [
+                                { offset: 0, color: `rgba(243, 156, 18, ${opacity + 0.2})` },
+                                { offset: 0.5, color: `rgba(243, 156, 18, ${opacity})` },
+                                { offset: 1, color: `rgba(243, 156, 18, ${opacity - 0.2})` }
+                            ]
+                        }
+                    }
+                }]
+            });
+        }, 100);
+
         window.addEventListener('resize', () => myChart.resize());
+    }
+
+    // ==========================================
+    // Three.js 3D 场景初始化
+    // ==========================================
+    let scene, camera, renderer, controls, mesh;
+    let animationId;
+
+    function init3DScene() {
+        try {
+            const container = document.getElementById('threeCanvas');
+            const width = container.parentElement.clientWidth;
+            const height = container.parentElement.clientHeight;
+
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = null;
+
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            camera.position.set(0, 0, 5);
+
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({
+                canvas: container,
+                alpha: true,
+                antialias: true
+            });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // 添加环境光
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            // 添加主光源（橙色调）
+            const directionalLight = new THREE.DirectionalLight(0xf39c12, 1.5);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // 添加辅助光源（蓝色调）
+            const backLight = new THREE.DirectionalLight(0x3498db, 0.8);
+            backLight.position.set(-5, 3, -5);
+            scene.add(backLight);
+
+            // 添加点光源（发光效果）
+            const pointLight = new THREE.PointLight(0xf39c12, 1, 100);
+            pointLight.position.set(0, 2, 3);
+            scene.add(pointLight);
+
+            // 创建占位几何体 - 发光菱形
+            const geometry = new THREE.OctahedronGeometry(1.5, 0);
+            
+            const material = new THREE.MeshPhysicalMaterial({
+                color: 0xf39c12,
+                emissive: 0xf39c12,
+                emissiveIntensity: 0.5,
+                metalness: 0.8,
+                roughness: 0.2,
+                transparent: true,
+                opacity: 0.9,
+                side: THREE.DoubleSide
+            });
+
+            mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+
+            // 添加线框效果
+            const wireframe = new THREE.WireframeGeometry(geometry);
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.3
+            });
+            const line = new THREE.LineSegments(wireframe, lineMaterial);
+            mesh.add(line);
+
+            // 添加粒子环绕效果
+            createParticleRing();
+
+            // 添加轨道控制器
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableZoom = true;
+            controls.enablePan = false;
+            controls.minDistance = 3;
+            controls.maxDistance = 10;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.0;
+
+            // 隐藏加载提示
+            setTimeout(() => {
+                const loading = document.getElementById('loading3d');
+                if (loading) loading.style.display = 'none';
+            }, 1000);
+
+            // 开始动画循环
+            animate();
+
+            // 响应窗口大小变化
+            window.addEventListener('resize', onWindowResize);
+        } catch (error) {
+            console.error('3D场景初始化失败:', error);
+            // 如果3D初始化失败，显示2D立绘
+            document.getElementById('charImg').classList.add('show');
+            document.getElementById('loading3d').style.display = 'none';
+        }
+    }
+
+    function createParticleRing() {
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particleCount = 100;
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Math.PI * 2;
+            const radius = 2.5 + Math.random() * 0.5;
+            positions[i * 3] = Math.cos(angle) * radius;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 3;
+            positions[i * 3 + 2] = Math.sin(angle) * radius;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            color: 0xf39c12,
+            size: 0.05,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particles);
+    }
+
+    function animate() {
+        animationId = requestAnimationFrame(animate);
+
+        if (mesh) {
+            mesh.rotation.x += 0.005;
+            mesh.rotation.y += 0.01;
+        }
+
+        if (controls) {
+            controls.update();
+        }
+
+        if (renderer && scene && camera) {
+            renderer.render(scene, camera);
+        }
+    }
+
+    function onWindowResize() {
+        const container = document.getElementById('threeCanvas');
+        if (!container) return;
+
+        const width = container.parentElement.clientWidth;
+        const height = container.parentElement.clientHeight;
+
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    }
+
+    function cleanup3DScene() {
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+        if (renderer) {
+            renderer.dispose();
+        }
+        window.removeEventListener('resize', onWindowResize);
     }
 
     const style = document.createElement('style');
@@ -692,8 +1104,17 @@
     `;
     document.head.appendChild(style);
 
-    fetchDetail();
-    loadStrategies();
+    // 页面加载完成后初始化
+    window.addEventListener('DOMContentLoaded', () => {
+        init3DScene();
+        fetchDetail();
+        loadStrategies();
+    });
+
+    // 页面卸载时清理
+    window.addEventListener('beforeunload', () => {
+        cleanup3DScene();
+    });
 </script>
 </body>
 </html>
