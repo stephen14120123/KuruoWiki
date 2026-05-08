@@ -1,0 +1,264 @@
+/**
+ * 公共CSS样式
+ * 包含通用的样式变量、组件样式等
+ */
+
+:root {
+    --mouse-x: 50vw;
+    --mouse-y: 50vh;
+    --card-mouse-x: 50%;
+    --card-mouse-y: 50%;
+    --elem-color: rgba(243, 156, 18, 0.7);
+    --primary-color: #f39c12;
+    --primary-dark: #e67e22;
+    --bg-dark: #0a0a0a;
+    --bg-card: #0d0d0d;
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0a0f;
+    color: #e0e0e0;
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    position: relative;
+}
+
+/* 赛博朋克网格背景 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(243, 156, 18, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(243, 156, 18, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* 背景光圈 */
+#ambient-light {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x) var(--mouse-y),
+        rgba(243, 156, 18, 0.08),
+        transparent 50%
+    );
+    transition: background 0.1s ease;
+}
+
+/* 导航栏 */
+.top-nav {
+    background: rgba(10, 10, 10, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.top-nav a {
+    color: #ccc;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 18px 30px;
+    transition: all 0.3s ease;
+    position: relative;
+    border-bottom: 2px solid transparent;
+}
+
+.top-nav a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.top-nav a:hover {
+    color: var(--primary-color);
+}
+
+.top-nav a:hover::after {
+    width: 100%;
+}
+
+.top-nav a.active {
+    color: var(--primary-color);
+}
+
+.top-nav a.active::after {
+    width: 100%;
+}
+
+/* 用户栏 */
+#userBar {
+    position: absolute;
+    top: 15px;
+    right: 40px;
+    font-size: 13px;
+    color: #aaa;
+    z-index: 105;
+    background: rgba(30, 30, 30, 0.6);
+    padding: 10px 18px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+#userBar:hover {
+    background: rgba(30, 30, 30, 0.8);
+    border-color: rgba(243, 156, 18, 0.3);
+}
+
+.admin-btn {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    border: 1px solid #e74c3c;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.admin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+}
+
+/* 标题 */
+h1 {
+    text-align: center;
+    color: var(--primary-color);
+    margin: 40px 0 30px;
+    font-size: 2.5em;
+    text-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+    position: relative;
+    z-index: 1;
+}
+
+/* 容器 */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* 按钮样式 */
+.btn {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(243, 156, 18, 0.5);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* 输入框样式 */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+textarea,
+select {
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid var(--border-color);
+    color: #e0e0e0;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(243, 156, 18, 0.2);
+}
+
+/* 加载动画 */
+.loading-text {
+    text-align: center;
+    color: #888;
+    font-size: 18px;
+    padding: 40px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+        margin: 20px 0;
+    }
+    
+    .top-nav a {
+        padding: 15px 20px;
+        font-size: 14px;
+    }
+    
+    #userBar {
+        position: static;
+        margin: 10px;
+        justify-content: center;
+    }
+}

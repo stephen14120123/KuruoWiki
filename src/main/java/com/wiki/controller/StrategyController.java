@@ -18,8 +18,17 @@ public class StrategyController {
 
     // 1. 获取指定角色的攻略列表 (GET /api/strategies?characterId=1)
     @GetMapping
-    public Result<List<StrategyGuide>> getList(@RequestParam Integer characterId) {
-        return Result.success(strategyService.getByCharacterId(characterId));
+    public Result<List<StrategyGuide>> getList(@RequestParam(required = false) Integer characterId) {
+        if (characterId != null) {
+            return Result.success(strategyService.getByCharacterId(characterId));
+        }
+        return Result.success(strategyService.getAllStrategies());
+    }
+
+    // 1.1 获取所有攻略列表 (GET /api/strategies/all)
+    @GetMapping("/all")
+    public Result<List<StrategyGuide>> getAllStrategies() {
+        return Result.success(strategyService.getAllStrategies());
     }
 
     // 2. 发布新攻略 (POST /api/strategies)

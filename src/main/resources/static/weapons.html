@@ -1,54 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>武器库 - KuroWiki</title>
+    <link rel="stylesheet" href="css/common.css">
     <style>
-        :root {
-            --mouse-x: 50vw;
-            --mouse-y: 50vh;
-            --card-mouse-x: 50%;
-            --card-mouse-y: 50%;
-            --elem-color: rgba(243, 156, 18, 0.7);
-            --primary-color: #f39c12;
-            --primary-dark: #e67e22;
-            --bg-dark: #0a0a0a;
-            --bg-card: #0d0d0d;
-            --border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #0a0a0f;
-            color: #e0e0e0;
-            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            position: relative;
-        }
-
-        /* 赛博朋克网格背景 */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(243, 156, 18, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(243, 156, 18, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
+        /* 页面特定样式 */
+        
         /* 背景光圈 */
         #ambient-light {
             position: fixed;
@@ -66,99 +25,13 @@
             transition: background 0.1s ease;
         }
 
-        /* 导航栏 */
-        .top-nav {
-            background: rgba(10, 10, 10, 0.5);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            gap: 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .top-nav a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 500;
-            padding: 18px 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            border-bottom: 2px solid transparent;
-        }
-
-        .top-nav a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary-color);
-            transition: width 0.3s ease;
-        }
-
-        .top-nav a:hover {
-            color: var(--primary-color);
-        }
-
-        .top-nav a:hover::after {
-            width: 100%;
-        }
-
+        /* 导航栏激活状态 */
         .top-nav a:nth-child(2) {
             color: var(--primary-color);
         }
 
         .top-nav a:nth-child(2)::after {
             width: 100%;
-        }
-
-        /* 用户栏 */
-        #userBar {
-            position: absolute;
-            top: 15px;
-            right: 40px;
-            font-size: 13px;
-            color: #aaa;
-            z-index: 105;
-            background: rgba(30, 30, 30, 0.6);
-            padding: 10px 18px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-        }
-
-        #userBar:hover {
-            background: rgba(30, 30, 30, 0.8);
-            border-color: rgba(243, 156, 18, 0.3);
-        }
-
-        .admin-btn {
-            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 12px;
-            border: 1px solid #e74c3c;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .admin-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
         }
 
         /* 标题 */
@@ -245,14 +118,11 @@
 
         #searchInput {
             width: 280px;
-            flex-shrink: 0;
         }
 
         .filter-select {
             cursor: pointer;
             padding-right: 30px;
-            width: 140px !important;
-            flex-shrink: 0;
         }
 
         .filter-select option {
@@ -458,8 +328,8 @@
             50% { opacity: 1; }
         }
 
-        /* 响应式设计 - 仅在极小屏幕生效 */
-        @media (max-width: 480px) {
+        /* 响应式设计 */
+        @media (max-width: 768px) {
             .character-container {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 25px;
@@ -476,19 +346,11 @@
             }
 
             #searchInput {
-                width: 100% !important;
+                width: 100%;
             }
 
             .filter-select {
-                width: 100% !important;
-                max-width: none !important;
-            }
-
-            #userBar {
-                top: 10px;
-                right: 15px;
-                font-size: 12px;
-                padding: 8px 12px;
+                width: 100%;
             }
 
             #backToTop {
@@ -509,6 +371,7 @@
     <a href="index.html">✦ 角色库</a>
     <a href="weapons.html">⚔️ 武器库</a>
     <a href="echoes.html">🔮 声骸库</a>
+    <a href="strategies.html">📚 攻略中心</a>
 </nav>
 
 <div id="userBar">
@@ -520,7 +383,7 @@
 
 <div class="filter-console">
     <input type="text" id="searchInput" placeholder="🔍 输入武器名称进行检索...">
-    <select id="elementFilter" class="filter-select" style="width: 140px !important;">
+    <select id="elementFilter" class="filter-select">
         <option value="全部">全部类型</option>
         <option value="长刃">长刃</option>
         <option value="迅刀">迅刀</option>
@@ -528,7 +391,7 @@
         <option value="音感仪">音感仪</option>
         <option value="佩枪">佩枪</option>
     </select>
-    <select id="rarityFilter" class="filter-select" style="width: 140px !important;">
+    <select id="rarityFilter" class="filter-select">
         <option value="0">全部星级</option>
         <option value="5">5星</option>
         <option value="4">4星</option>
@@ -542,6 +405,7 @@
 
 <button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">▲</button>
 
+<script src="js/common.js"></script>
 <script>
     let allCharacters = [];
 
@@ -554,42 +418,43 @@
         '湮灭': 'rgba(255, 20, 147, 0.7)'
     };
 
-    window.addEventListener('mousemove', (e) => {
-        const ambient = document.getElementById('ambient-light');
-        ambient.style.setProperty('--mouse-x', `${e.clientX}px`);
-        ambient.style.setProperty('--mouse-y', `${e.clientY}px`);
-    });
+    // 节流函数
+    function throttle(func, limit) {
+        let inThrottle;
+        return function() {
+            const args = arguments;
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        }
+    }
 
-    document.getElementById('charList').addEventListener('mousemove', (e) => {
+    // 优化后的鼠标移动事件
+    const throttledMouseMove = throttle((e) => {
+        const ambient = document.getElementById('ambient-light');
+        if (ambient) {
+            ambient.style.setProperty('--mouse-x', `${e.clientX}px`);
+            ambient.style.setProperty('--mouse-y', `${e.clientY}px`);
+        }
+    }, 16);
+
+    const throttledCardMouseMove = throttle((e) => {
         const cards = document.querySelectorAll('.glow-card');
         cards.forEach(card => {
             const rect = card.getBoundingClientRect();
             card.style.setProperty('--card-mouse-x', `${e.clientX - rect.left}px`);
             card.style.setProperty('--card-mouse-y', `${e.clientY - rect.top}px`);
         });
-    });
+    }, 16);
 
-    async function checkLogin() {
-        try {
-            const token = localStorage.getItem('jwt_token');
-            if (!token) return;
-            const response = await fetch('/api/user/info', { headers: { 'Authorization': 'Bearer ' + token } });
-            const result = await response.json();
-            if (result.code === 200 && result.data) {
-                const user = result.data;
-                let html = `<span>✓ 已接入：<strong>${user.nickname}</strong></span>`;
-                if (user.role === 1) html += `<a href="admin.html" class="admin-btn">🛡️ 核心控制台</a>`;
-                html += `<a href="javascript:void(0)" onclick="logout()" style="color:#e74c3c; text-decoration:none; cursor:pointer;">[断开]</a>`;
-                document.getElementById('userBar').innerHTML = html;
-            }
-        } catch (e) { console.log("身份验证失效"); }
-    }
+    window.addEventListener('mousemove', throttledMouseMove);
 
-    function logout() {
-        if(confirm("确定要断开终端连接吗？")) {
-            localStorage.removeItem('jwt_token');
-            window.location.reload();
-        }
+    const charList = document.getElementById('charList');
+    if (charList) {
+        charList.addEventListener('mousemove', throttledCardMouseMove);
     }
 
     async function loadCharacters() {
@@ -600,7 +465,9 @@
                 allCharacters = result.data;
                 renderCards(allCharacters);
             }
-        } catch (e) { console.error('武器加载失败'); }
+        } catch (e) { 
+            console.error('武器加载失败:', e); 
+        }
     }
 
     function renderCards(dataList) {
@@ -613,25 +480,61 @@
         dataList.forEach(weapon => {
             const card = document.createElement('div');
             card.className = 'glow-card';
-            const glowColor = 'rgba(243, 156, 18, 0.7)'; // 武器统一使用橙色
+            const glowColor = 'rgba(243, 156, 18, 0.7)';
             card.style.setProperty('--elem-color', glowColor);
 
             card.onclick = () => {}; // 武器暂无详情页
-            card.innerHTML = `
-                <div class="glow-card-inner">
-                    <div class="card-img-box">
-                        <img src="${weapon.imageUrl || 'images/default.jpg'}" class="card-img" alt="${weapon.name}" onerror="this.src='images/default.jpg'">
-                    </div>
-                    <div class="card-info">
-                        <p class="card-name">${weapon.name}</p>
-                        <div>
-                            <span class="tag" style="color: #f1c40f; border-color: #f1c40f;">⭐ ${weapon.rarity}星</span>
-                            <span class="tag" style="color: ${glowColor.replace('0.7', '1')}; border-color: ${glowColor.replace('0.7', '0.5')};">${weapon.weaponType}</span>
-                        </div>
-                        <p class="desc">${weapon.skillDesc || '暂无描述'}</p>
-                    </div>
-                </div>
-            `;
+            
+            const cardInner = document.createElement('div');
+            cardInner.className = 'glow-card-inner';
+            
+            const imgBox = document.createElement('div');
+            imgBox.className = 'card-img-box';
+            
+            const img = document.createElement('img');
+            img.src = weapon.imageUrl || 'images/default.jpg';
+            img.className = 'card-img';
+            img.alt = weapon.name;
+            img.onerror = function() { this.src = 'images/default.jpg'; };
+            
+            imgBox.appendChild(img);
+            
+            const cardInfo = document.createElement('div');
+            cardInfo.className = 'card-info';
+            
+            const cardName = document.createElement('p');
+            cardName.className = 'card-name';
+            cardName.textContent = weapon.name;
+            
+            const tagsDiv = document.createElement('div');
+            
+            const rarityTag = document.createElement('span');
+            rarityTag.className = 'tag';
+            rarityTag.style.color = '#f1c40f';
+            rarityTag.style.borderColor = '#f1c40f';
+            rarityTag.textContent = `⭐ ${weapon.rarity}星`;
+            
+            const typeTag = document.createElement('span');
+            typeTag.className = 'tag';
+            typeTag.style.color = glowColor.replace('0.7', '1');
+            typeTag.style.borderColor = glowColor.replace('0.7', '0.5');
+            typeTag.textContent = weapon.weaponType;
+            
+            tagsDiv.appendChild(rarityTag);
+            tagsDiv.appendChild(typeTag);
+            
+            const desc = document.createElement('p');
+            desc.className = 'desc';
+            desc.textContent = weapon.skillDesc || '暂无描述';
+            
+            cardInfo.appendChild(cardName);
+            cardInfo.appendChild(tagsDiv);
+            cardInfo.appendChild(desc);
+            
+            cardInner.appendChild(imgBox);
+            cardInner.appendChild(cardInfo);
+            card.appendChild(cardInner);
+            
             listDiv.appendChild(card);
         });
     }
@@ -658,8 +561,12 @@
         document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
     });
 
-    checkLogin();
-    loadCharacters();
+    // 立即执行初始化
+    (async function init() {
+        const user = await checkLogin();
+        updateUserBar(user);
+        await loadCharacters();
+    })();
 </script>
 </body>
 </html>

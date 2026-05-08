@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>攻略中心 - KuroWiki</title>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        /* 页面特定样式 */
+        #ambient-light {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(243, 156, 18, 0.08),
+                transparent 50%
+            );
+            transition: background 0.1s ease;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-top: 60px;
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+            font-weight: 300;
+            font-size: 42px;
+            position: relative;
+            z-index: 10;
+            text-shadow: 0 0 30px rgba(243, 156, 18, 0.3);
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 10;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+
+        /* 筛选控制台 */
+        .filter-console {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+            padding: 0 20px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            background: rgba(25, 25, 25, 0.6);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+            cursor: pointer;
+            width: 140px;
+            appearance: none;
+            padding-right: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f39c12' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        .filter-select:hover {
+            border-color: var(--primary-color);
+            background: rgba(25, 25, 25, 0.8);
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.2);
+        }
+
+        .filter-select option {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        /* 攻略容器 */
+        .strategy-container {
+            max-width: 1200px;
+            margin: 0 auto 80px auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 攻略卡片 */
+        .strategy-card {
+            background: rgba(30, 30, 30, 0.6);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .strategy-card:hover {
+            background: rgba(30, 30, 30, 0.8);
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.1);
+        }
+
+        .strategy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .strategy-title {
+            color: var(--primary-color);
+            font-size: 20px;
+            font-weight: bold;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .strategy-title:hover {
+            text-decoration: underline;
+        }
+
+        .strategy-meta {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .strategy-content {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .strategy-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            background: rgba(243, 156, 18, 0.1);
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 60px 20px;
+            font-size: 16px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+                margin-top: 40px;
+            }
+
+            .filter-console {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .strategy-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .strategy-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="ambient-light"></div>
+
+<nav class="top-nav">
+    <a href="index.html">✦ 角色库</a>
+    <a href="weapons.html">⚔️ 武器库</a>
+    <a href="echoes.html">🔮 声骸库</a>
+    <a href="strategies.html" style="color: var(--primary-color);">📚 攻略中心</a>
+</nav>
+
+<div id="userBar">
+    <a href="login.html" style="color: var(--primary-color); text-decoration: none; font-weight: bold;">🔑 漂泊者登录</a>
+</div>
+
+<h1>📚 攻略中心</h1>
+<p class="subtitle">探索共鸣者的无限可能</p>
+
+<div class="filter-console">
+    <select id="characterFilter" class="filter-select">
+        <option value="">全部角色</option>
+    </select>
+    <select id="strategyType" class="filter-select">
+        <option value="">全部类型</option>
+        <option value="新手入门">新手入门</option>
+        <option value="声骸搭配">声骸搭配</option>
+        <option value="武器推荐">武器推荐</option>
+        <option value="技能解析">技能解析</option>
+        <option value="实战心得">实战心得</option>
+    </select>
+    <select id="authorFilter" class="filter-select">
+        <option value="">全部作者</option>
+    </select>
+</div>
+
+<div class="strategy-container" id="strategyList">
+    <p class="empty-state">正在加载攻略数据...</p>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+    let allStrategies = [];
+    let allCharacters = [];
+
+    // 鼠标移动效果
+    function throttle(func, limit) {
+        let inThrottle;
+        return function() {
+            const args = arguments;
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        }
+    }
+
+    const throttledMouseMove = throttle((e) => {
+        const ambient = document.getElementById('ambient-light');
+        if (ambient) {
+            ambient.style.setProperty('--mouse-x', `${e.clientX}px`);
+            ambient.style.setProperty('--mouse-y', `${e.clientY}px`);
+        }
+    }, 16);
+
+    window.addEventListener('mousemove', throttledMouseMove);
+
+    // 加载角色列表用于筛选
+    async function loadCharacters() {
+        try {
+            const response = await fetch('/api/characters');
+            const result = await response.json();
+            if (result.code === 200) {
+                allCharacters = result.data;
+                populateCharacterFilter();
+            }
+        } catch (e) {
+            console.error('加载角色列表失败:', e);
+        }
+    }
+
+    // 填充角色筛选器
+    function populateCharacterFilter() {
+        const select = document.getElementById('characterFilter');
+        allCharacters.forEach(char => {
+            const option = document.createElement('option');
+            option.value = char.id;
+            option.textContent = char.name;
+            select.appendChild(option);
+        });
+    }
+
+    // 加载所有攻略
+    async function loadStrategies() {
+        try {
+            const response = await fetch('/api/strategies/all');
+            const result = await response.json();
+            if (result.code === 200) {
+                allStrategies = result.data;
+                populateAuthorFilter();
+                renderStrategies(allStrategies);
+            }
+        } catch (e) {
+            console.error('加载攻略失败:', e);
+            document.getElementById('strategyList').innerHTML = 
+                '<p class="empty-state">加载失败，请刷新重试</p>';
+        }
+    }
+
+    // 填充作者筛选器
+    function populateAuthorFilter() {
+        const select = document.getElementById('authorFilter');
+        const authors = [...new Set(allStrategies.map(s => s.authorName))];
+        authors.forEach(author => {
+            const option = document.createElement('option');
+            option.value = author;
+            option.textContent = author;
+            select.appendChild(option);
+        });
+    }
+
+    // 渲染攻略列表
+    function renderStrategies(strategies) {
+        const container = document.getElementById('strategyList');
+        
+        if (strategies.length === 0) {
+            container.innerHTML = '<p class="empty-state">暂无匹配的攻略</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        strategies.forEach((strategy, index) => {
+            const card = document.createElement('div');
+            card.className = 'strategy-card';
+            card.style.animationDelay = `${index * 0.05}s`;
+
+            const character = allCharacters.find(c => c.id === strategy.characterId);
+            const characterName = character ? character.name : '未知角色';
+            const date = new Date(strategy.createTime).toLocaleString();
+
+            card.innerHTML = `
+                <div class="strategy-header">
+                    <div class="strategy-title" onclick="viewDetail(${strategy.characterId})">${strategy.title}</div>
+                </div>
+                <div class="strategy-content">${strategy.content}</div>
+                <div class="strategy-tags">
+                    <span class="tag">👤 ${strategy.authorName}</span>
+                    <span class="tag">✦ ${characterName}</span>
+                    <span class="tag">📅 ${date}</span>
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+    }
+
+    // 应用筛选
+    function applyFilters() {
+        const characterId = document.getElementById('characterFilter').value;
+        const strategyType = document.getElementById('strategyType').value;
+        const author = document.getElementById('authorFilter').value;
+
+        const filtered = allStrategies.filter(strategy => {
+            const matchCharacter = !characterId || strategy.characterId == characterId;
+            const matchType = !strategyType || strategy.title.includes(strategyType);
+            const matchAuthor = !author || strategy.authorName === author;
+            return matchCharacter && matchType && matchAuthor;
+        });
+
+        renderStrategies(filtered);
+    }
+
+    // 查看详情
+    function viewDetail(characterId) {
+        window.location.href = `detail.html?id=${characterId}`;
+    }
+
+    // 绑定筛选事件
+    document.getElementById('characterFilter').addEventListener('change', applyFilters);
+    document.getElementById('strategyType').addEventListener('change', applyFilters);
+    document.getElementById('authorFilter').addEventListener('change', applyFilters);
+
+    // 初始化
+    (async function init() {
+        const user = await checkLogin();
+        updateUserBar(user);
+        await loadCharacters();
+        await loadStrategies();
+    })();
+</script>
+</body>
+</html>

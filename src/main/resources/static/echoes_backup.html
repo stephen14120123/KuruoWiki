@@ -4,10 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>声骸库 - KuroWiki</title>
-    <link rel="stylesheet" href="css/common.css">
     <style>
-        /* 页面特定样式 */
-        
+        :root {
+            --mouse-x: 50vw;
+            --mouse-y: 50vh;
+            --card-mouse-x: 50%;
+            --card-mouse-y: 50%;
+            --elem-color: rgba(243, 156, 18, 0.7);
+            --primary-color: #f39c12;
+            --primary-dark: #e67e22;
+            --bg-dark: #0a0a0a;
+            --bg-card: #0d0d0d;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            color: #e0e0e0;
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            position: relative;
+        }
+
+        /* 赛博朋克网格背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(243, 156, 18, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(243, 156, 18, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         /* 背景光圈 */
         #ambient-light {
             position: fixed;
@@ -25,13 +66,99 @@
             transition: background 0.1s ease;
         }
 
-        /* 导航栏激活状态 */
+        /* 导航栏 */
+        .top-nav {
+            background: rgba(10, 10, 10, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-nav a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 18px 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            border-bottom: 2px solid transparent;
+        }
+
+        .top-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .top-nav a:hover {
+            color: var(--primary-color);
+        }
+
+        .top-nav a:hover::after {
+            width: 100%;
+        }
+
         .top-nav a:nth-child(3) {
             color: var(--primary-color);
         }
 
         .top-nav a:nth-child(3)::after {
             width: 100%;
+        }
+
+        /* 用户栏 */
+        #userBar {
+            position: absolute;
+            top: 15px;
+            right: 40px;
+            font-size: 13px;
+            color: #aaa;
+            z-index: 105;
+            background: rgba(30, 30, 30, 0.6);
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        #userBar:hover {
+            background: rgba(30, 30, 30, 0.8);
+            border-color: rgba(243, 156, 18, 0.3);
+        }
+
+        .admin-btn {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            border: 1px solid #e74c3c;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
         }
 
         /* 标题 */
@@ -98,11 +225,11 @@
 
         .filter-select,
         #searchInput {
-            padding: 10px 15px;
+            padding: 12px 18px;
             background: rgba(25, 25, 25, 0.6);
             border: 1px solid var(--border-color);
             color: #fff;
-            border-radius: 8px;
+            border-radius: 10px;
             outline: none;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
@@ -122,7 +249,6 @@
 
         .filter-select {
             cursor: pointer;
-            padding-right: 30px;
         }
 
         .filter-select option {
@@ -353,6 +479,13 @@
                 width: 100%;
             }
 
+            #userBar {
+                top: 10px;
+                right: 15px;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
             #backToTop {
                 bottom: 20px;
                 right: 20px;
@@ -405,7 +538,6 @@
 
 <button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">▲</button>
 
-<script src="js/common.js"></script>
 <script>
     let allCharacters = [];
 
@@ -418,43 +550,42 @@
         '湮灭': 'rgba(255, 20, 147, 0.7)'
     };
 
-    // 节流函数
-    function throttle(func, limit) {
-        let inThrottle;
-        return function() {
-            const args = arguments;
-            const context = this;
-            if (!inThrottle) {
-                func.apply(context, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        }
-    }
-
-    // 优化后的鼠标移动事件
-    const throttledMouseMove = throttle((e) => {
+    window.addEventListener('mousemove', (e) => {
         const ambient = document.getElementById('ambient-light');
-        if (ambient) {
-            ambient.style.setProperty('--mouse-x', `${e.clientX}px`);
-            ambient.style.setProperty('--mouse-y', `${e.clientY}px`);
-        }
-    }, 16);
+        ambient.style.setProperty('--mouse-x', `${e.clientX}px`);
+        ambient.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
 
-    const throttledCardMouseMove = throttle((e) => {
+    document.getElementById('charList').addEventListener('mousemove', (e) => {
         const cards = document.querySelectorAll('.glow-card');
         cards.forEach(card => {
             const rect = card.getBoundingClientRect();
             card.style.setProperty('--card-mouse-x', `${e.clientX - rect.left}px`);
             card.style.setProperty('--card-mouse-y', `${e.clientY - rect.top}px`);
         });
-    }, 16);
+    });
 
-    window.addEventListener('mousemove', throttledMouseMove);
+    async function checkLogin() {
+        try {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) return;
+            const response = await fetch('/api/user/info', { headers: { 'Authorization': 'Bearer ' + token } });
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                const user = result.data;
+                let html = `<span>✓ 已接入：<strong>${user.nickname}</strong></span>`;
+                if (user.role === 1) html += `<a href="admin.html" class="admin-btn">🛡️ 核心控制台</a>`;
+                html += `<a href="javascript:void(0)" onclick="logout()" style="color:#e74c3c; text-decoration:none; cursor:pointer;">[断开]</a>`;
+                document.getElementById('userBar').innerHTML = html;
+            }
+        } catch (e) { console.log("身份验证失效"); }
+    }
 
-    const charList = document.getElementById('charList');
-    if (charList) {
-        charList.addEventListener('mousemove', throttledCardMouseMove);
+    function logout() {
+        if(confirm("确定要断开终端连接吗？")) {
+            localStorage.removeItem('jwt_token');
+            window.location.reload();
+        }
     }
 
     async function loadCharacters() {
@@ -465,9 +596,7 @@
                 allCharacters = result.data;
                 renderCards(allCharacters);
             }
-        } catch (e) { 
-            console.error('声骸加载失败:', e); 
-        }
+        } catch (e) { console.error('声骸加载失败'); }
     }
 
     function renderCards(dataList) {
@@ -480,61 +609,25 @@
         dataList.forEach(echo => {
             const card = document.createElement('div');
             card.className = 'glow-card';
-            const glowColor = 'rgba(147, 112, 219, 0.7)'; // 声骸使用紫色
+            const glowColor = 'rgba(138, 43, 226, 0.7)'; // 声骸使用紫色
             card.style.setProperty('--elem-color', glowColor);
 
             card.onclick = () => {}; // 声骸暂无详情页
-            
-            const cardInner = document.createElement('div');
-            cardInner.className = 'glow-card-inner';
-            
-            const imgBox = document.createElement('div');
-            imgBox.className = 'card-img-box';
-            
-            const img = document.createElement('img');
-            img.src = echo.imageUrl || 'images/default.jpg';
-            img.className = 'card-img';
-            img.alt = echo.name;
-            img.onerror = function() { this.src = 'images/default.jpg'; };
-            
-            imgBox.appendChild(img);
-            
-            const cardInfo = document.createElement('div');
-            cardInfo.className = 'card-info';
-            
-            const cardName = document.createElement('p');
-            cardName.className = 'card-name';
-            cardName.textContent = echo.name;
-            
-            const tagsDiv = document.createElement('div');
-            
-            const costTag = document.createElement('span');
-            costTag.className = 'tag';
-            costTag.style.color = '#3498db';
-            costTag.style.borderColor = '#3498db';
-            costTag.textContent = `COST ${echo.cost}`;
-            
-            const sonataTag = document.createElement('span');
-            sonataTag.className = 'tag';
-            sonataTag.style.color = glowColor.replace('0.7', '1');
-            sonataTag.style.borderColor = glowColor.replace('0.7', '0.5');
-            sonataTag.textContent = echo.sonataEffect || '未知合鸣';
-            
-            tagsDiv.appendChild(costTag);
-            tagsDiv.appendChild(sonataTag);
-            
-            const desc = document.createElement('p');
-            desc.className = 'desc';
-            desc.textContent = echo.skillDesc || '暂无描述';
-            
-            cardInfo.appendChild(cardName);
-            cardInfo.appendChild(tagsDiv);
-            cardInfo.appendChild(desc);
-            
-            cardInner.appendChild(imgBox);
-            cardInner.appendChild(cardInfo);
-            card.appendChild(cardInner);
-            
+            card.innerHTML = `
+                <div class="glow-card-inner">
+                    <div class="card-img-box">
+                        <img src="${echo.imageUrl || 'images/default.jpg'}" class="card-img" alt="${echo.name}" onerror="this.src='images/default.jpg'">
+                    </div>
+                    <div class="card-info">
+                        <p class="card-name">${echo.name}</p>
+                        <div>
+                            <span class="tag" style="color: #9b59b6; border-color: #9b59b6;">COST ${echo.cost}</span>
+                            <span class="tag" style="color: ${glowColor.replace('0.7', '1')}; border-color: ${glowColor.replace('0.7', '0.5')};">${echo.sonataEffect || '未知'}</span>
+                        </div>
+                        <p class="desc">${echo.skillDesc || '暂无描述'}</p>
+                    </div>
+                </div>
+            `;
             listDiv.appendChild(card);
         });
     }
@@ -546,8 +639,8 @@
 
         const filtered = allCharacters.filter(echo => {
             const matchKeyword = echo.name.toLowerCase().includes(keyword) || (echo.sonataEffect && echo.sonataEffect.includes(keyword));
-            const matchElement = (element === '全部' || element === '✦ 全部合鸣') || (echo.sonataEffect === element);
-            const matchRarity = (rarity === '0' || rarity === '✦ 全部COST') || (echo.cost == rarity);
+            const matchElement = (element === '全部') || (echo.sonataEffect === element);
+            const matchRarity = (rarity === '0') || (echo.cost == rarity);
             return matchKeyword && matchElement && matchRarity;
         });
         renderCards(filtered);
@@ -561,12 +654,8 @@
         document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
     });
 
-    // 立即执行初始化
-    (async function init() {
-        const user = await checkLogin();
-        updateUserBar(user);
-        await loadCharacters();
-    })();
+    checkLogin();
+    loadCharacters();
 </script>
 </body>
 </html>
