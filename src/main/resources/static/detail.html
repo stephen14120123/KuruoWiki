@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>共鸣者档案详情</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #fff;
+            font-family: "Microsoft YaHei", sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            background: #161616;
+            border-radius: 20px;
+            display: flex;
+            overflow: hidden;
+            border: 1px solid #333;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        /* 左侧：立绘大图 */
+        .left-panel {
+            flex: 1;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid #333;
+        }
+
+        #charImg {
+            width: 100%;
+            height: 600px;
+            object-fit: contain;
+        }
+
+        /* 右侧：档案信息与雷达图 */
+        .right-panel {
+            flex: 2;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .header { border-bottom: 2px solid #f39c12; padding-bottom: 15px; margin-bottom: 20px; }
+        .name { font-size: 42px; font-weight: bold; margin: 0; }
+        .tags { margin-top: 10px; }
+        .tag { padding: 4px 15px; border-radius: 5px; background: #333; margin-right: 10px; font-size: 14px; }
+
+        .description { line-height: 1.8; color: #aaa; margin-bottom: 30px; }
+
+        #radarChart {
+            width: 100%;
+            height: 350px;
+            margin-bottom: 30px;
+        }
+
+        .back-btn {
+            position: absolute; top: 20px; left: 20px;
+            color: #f39c12; text-decoration: none; font-size: 18px;
+            z-index: 10;
+        }
+
+        /* 滚动条美化 */
+        .right-panel::-webkit-scrollbar { width: 6px; }
+        .right-panel::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<a href="index.html" class="back-btn">← 返回图鉴</a>
+
+<div class="container">
+    <div class="left-panel">
+        <img id="charImg" src="" alt="">
+    </div>
+    <div class="right-panel">
+        <div class="header">
+            <p id="charName" class="name">加载中...</p>
+            <div class="tags">
+                <span id="charRarity" class="tag"></span>
+                <span id="charElement" class="tag" style="color: #3498db;"></span>
+            </div>
+        </div>
+        <p id="charDesc" class="description"></p>
+
+        <div id="radarChart"></div>
+
+        <div style="margin-top: 30px;">
+            <h3 style="color: #f39c12; border-left: 4px solid #f39c12; padding-left: 10px;">档案库攻略记录</h3>
+            <div id="strategyList"></div>
+        </div>
+
+        <div style="margin-top: 40px; border-top: 1px solid #333; padding-top: 20px;">
+            <h3>撰写共鸣攻略</h3>
+            <input type="text" id="postTitle" placeholder="请输入标题 (如：声骸搭配心得)"
+                   style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:1px solid #444; color:#fff; border-radius:5px; box-sizing: border-box;">
+            <textarea id="postContent" placeholder="在此输入你的实战建议..." rows="5"
+                      style="width:100%; padding:10px; background:#222; border:1px solid #444; color:#fff; border-radius:5px; box-sizing: border-box;"></textarea>
+            <button onclick="submitPost()"
+                    style="margin-top:10px; padding:10px 25px; background:#f39c12; border:none; border-radius:5px; cursor:pointer; font-weight:bold; color: #000;">
+                发布档案
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const charId = urlParams.get('id');
+
+    // 1. 加载角色详情信息
+    async function fetchDetail() {
+        try {
+            const response = await fetch(`/api/characters/${charId}`);
+            const result = await response.json();
+
+            if (result.code === 200) {
+                const data = result.data;
+                document.getElementById('charName').innerText = data.name;
+                document.getElementById('charRarity').innerText = data.rarity + "星";
+                document.getElementById('charElement').innerText = data.element;
+                document.getElementById('charDesc').innerText = data.description;
+                document.getElementById('charImg').src = data.imageUrl;
+                initRadar(data);
+            } else {
+                alert("档案读取失败: " + result.message);
+            }
+        } catch (err) {
+            console.error("加载详情失败", err);
+        }
+    }
+
+    // 2. 🚨 JWT 升级：加载攻略列表 (适配 Result 结构)
+    async function loadStrategies() {
+        try {
+            const response = await fetch(`/api/strategies?characterId=${charId}`);
+            const result = await response.json();
+
+            if (result.code === 200) {
+                const list = result.data; // 提取数组
+                const listDiv = document.getElementById('strategyList');
+                listDiv.innerHTML = list.length === 0 ? '<p style="color:#666">暂无攻略记录，快来抢首发！</p>' : '';
+
+                list.forEach(item => {
+                    const date = new Date(item.createTime).toLocaleString();
+                    const post = document.createElement('div');
+                    post.style = "background:#222; padding:15px; border-radius:8px; margin-bottom:15px; border-left:4px solid #f39c12;";
+                    post.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong style="color:#f39c12; font-size:18px;">${item.title}</strong>
+                            <div>
+                                <span style="font-size:12px; color:#666;">${item.authorName} · ${date}</span>
+                                <a href="javascript:void(0)" onclick="confirmDelete(${item.id})"
+                                   style="color:#e74c3c; margin-left:15px; text-decoration:none; font-size:12px;">[删除]</a>
+                            </div>
+                        </div>
+                        <p style="margin:0; color:#ccc; font-size:14px; white-space: pre-wrap;">${item.content}</p>
+                    `;
+                    listDiv.appendChild(post);
+                });
+            }
+        } catch (err) {
+            console.error("加载攻略失败", err);
+        }
+    }
+
+    // 3. 🚨 JWT 升级：删除攻略 (使用 DELETE 方法并携带 Token)
+    async function confirmDelete(id) {
+        if (!confirm("确定要从档案库中永久抹除这条记录吗？")) return;
+
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+            alert("⚠️ 权限验证失败，请先登录！");
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/strategies/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            const result = await response.json();
+
+            if (result.code === 200) {
+                alert("💥 抹除成功！");
+                loadStrategies();
+            } else {
+                alert(result.message); // 显示如“越权操作”等后端提示
+                if (result.code === 401) window.location.href = 'login.html';
+            }
+        } catch (err) {
+            console.error("删除出错", err);
+        }
+    }
+
+    // 4. 🚨 JWT 升级：提交新攻略 (使用 JSON 格式并携带 Token)
+    async function submitPost() {
+        const title = document.getElementById('postTitle').value;
+        const content = document.getElementById('postContent').value;
+        const token = localStorage.getItem('jwt_token');
+
+        if (!token) {
+            alert("⚠️ 终端拒绝：请先进行身份验证！");
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if(!title || !content) {
+            alert("标题和内容不能为空！");
+            return;
+        }
+
+        // 构造 JSON 数据
+        const data = {
+            characterId: parseInt(charId),
+            title: title,
+            content: content
+        };
+
+        try {
+            const response = await fetch('/api/strategies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            if(result.code === 200) {
+                alert("🎉 档案同步成功！");
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postContent').value = '';
+                loadStrategies();
+            } else {
+                alert(result.message);
+                if (result.code === 401) window.location.href = 'login.html';
+            }
+        } catch (err) {
+            console.error("网络异常", err);
+        }
+    }
+
+    // 5. 初始化雷达图
+    function initRadar(data) {
+        const chartDom = document.getElementById('radarChart');
+        const myChart = echarts.init(chartDom, 'dark');
+        const option = {
+            backgroundColor: 'transparent',
+            radar: {
+                indicator: [
+                    { name: '生命值', max: 100 },
+                    { name: '共鸣效率', max: 100 },
+                    { name: '暴击率', max: 100 },
+                    { name: '防御力', max: 100 },
+                    { name: '攻击力', max: 100 }
+                ],
+                splitArea: { show: false },
+                axisLine: { lineStyle: { color: '#444' } }
+            },
+            series: [{
+                type: 'radar',
+                data: [{
+                    value: [data.hp, data.energy, data.crit, data.def, data.atk],
+                    name: '能力评估',
+                    areaStyle: { color: 'rgba(243, 156, 18, 0.5)' },
+                    lineStyle: { color: '#f39c12' },
+                    itemStyle: { color: '#f39c12' }
+                }]
+            }]
+        };
+        myChart.setOption(option);
+    }
+
+    fetchDetail();
+    loadStrategies();
+</script>
+</body>
+</html>

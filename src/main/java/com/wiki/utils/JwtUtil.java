@@ -7,9 +7,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import java.util.Date;
 
 public class JwtUtil {
-    // 🚨 服务器私钥（数字印章）
-    private static final String SECRET_KEY = "KuruoWiki_Super_Secret_Key";
-    // ⏳ Token 有效期：7天
+    // 更新为正确的项目名密钥
+    private static final String SECRET_KEY = "KuroWiki_Super_Secret_Key";
     private static final long EXPIRATION = 7 * 24 * 60 * 60 * 1000L;
 
     public static String generateToken(User user) {
@@ -28,7 +27,7 @@ public class JwtUtil {
         try {
             return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
         } catch (Exception e) {
-            return null; // Token 过期或被篡改
+            return null;
         }
     }
 }

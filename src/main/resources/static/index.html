@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>KuruoWiki - 共鸣者图鉴</title>
+    <style>
+        /* 🚨 强迫症修复：在 :root 声明变量，解决 IDEA 爆红问题 */
+        :root {
+            --mouse-x: 50vw;
+            --mouse-y: 50vh;
+            --card-mouse-x: 50%;
+            --card-mouse-y: 50%;
+            --elem-color: rgba(243, 156, 18, 0.7);
+        }
+
+        /* ================= 1. 基础与噪点质感层 ================= */
+        body {
+            background-color: #030303;
+            color: #e0e0e0;
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            scroll-behavior: smooth;
+        }
+
+        /* ================= 2. 全局鼠标环境光 (光圈已收窄) ================= */
+        #ambient-light {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            /* 🚨 优化：半径从 700px 缩小至 500px */
+            background: radial-gradient(
+                    500px circle at var(--mouse-x) var(--mouse-y),
+                    rgba(243, 156, 18, 0.12),
+                    transparent 45%
+            );
+            transition: background 0.1s ease;
+        }
+
+        /* ================= 3. 导航栏与排版 ================= */
+        .top-nav {
+            background-color: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px 0;
+            display: flex; justify-content: center; gap: 30px;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .top-nav a {
+            color: #ccc; text-decoration: none; font-size: 18px; font-weight: bold;
+            padding: 8px 16px; border-radius: 5px; transition: all 0.3s;
+        }
+        .top-nav a:hover { color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+
+        #userBar {
+            position: absolute; top: 15px; right: 40px; font-size: 14px; color: #aaa; z-index: 105;
+            background: rgba(30, 30, 30, 0.6); padding: 8px 15px; border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+            display: flex; align-items: center;
+        }
+        .admin-btn { background-color: rgba(192, 57, 43, 0.8); color: white; padding: 4px 10px; border-radius: 4px; text-decoration: none; margin-left: 10px; font-size: 12px; border: 1px solid #e74c3c; }
+
+        h1 { text-align: center; color: #f39c12; margin-top: 50px; letter-spacing: 3px; font-weight: 300; position: relative; z-index: 10; text-shadow: 0 0 25px rgba(243, 156, 18, 0.4); }
+
+        .filter-console { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 50px; flex-wrap: wrap; position: relative; z-index: 10; }
+        .filter-select, #searchInput {
+            padding: 12px 20px; background: rgba(25, 25, 25, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 12px; outline: none; transition: all 0.3s; backdrop-filter: blur(10px);
+        }
+        .filter-select:hover, #searchInput:focus { border-color: #f39c12; box-shadow: 0 0 15px rgba(243,156,18,0.2); }
+
+        /* ================= 4. 核心：流光边框卡片组 (光圈已收窄) ================= */
+        .character-container {
+            max-width: 1350px; margin: 0 auto 50px auto; padding: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 35px;
+            position: relative; z-index: 10;
+        }
+
+        .glow-card {
+            height: 520px;
+            border-radius: 16px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            padding: 1px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .glow-card:hover { transform: translateY(-10px); }
+
+        /* 🚨 优化：外层流光半径从 1200px 缩小至 800px */
+        .glow-card::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(
+                    800px circle at var(--card-mouse-x) var(--card-mouse-y),
+                    var(--elem-color),
+                    transparent 60%
+            );
+            opacity: 0; transition: opacity 0.4s ease-out; z-index: 0;
+        }
+        .character-container:hover .glow-card::before { opacity: 1; }
+
+        .glow-card-inner {
+            position: relative; width: 100%; height: 100%;
+            background: #0d0d0d; border-radius: 15px; z-index: 1;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* 🚨 优化：内部照明半径从 700px 缩小至 500px */
+        .glow-card-inner::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(
+                    500px circle at var(--card-mouse-x) var(--card-mouse-y),
+                    rgba(255, 255, 255, 0.06),
+                    transparent 45%
+            );
+            z-index: 5; pointer-events: none;
+        }
+
+        .card-img-box {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; overflow: hidden;
+        }
+        .card-img {
+            width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform 0.6s ease;
+        }
+        .glow-card:hover .card-img { transform: scale(1.1); }
+
+        .card-info {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 48%;
+            padding: 35px 20px 20px 20px; z-index: 10; box-sizing: border-box;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            background: linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.75) 45%, transparent 100%);
+        }
+
+        .card-name { font-size: 30px; font-weight: bold; margin: 0 0 8px 0; color: #fff; text-shadow: 0 3px 15px rgba(0,0,0,1); }
+        .tag { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; margin-right: 8px; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .desc { font-size: 13.5px; color: #ccc; line-height: 1.6; margin-top: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+
+        #backToTop { position: fixed; bottom: 40px; right: 40px; width: 50px; height: 50px; border-radius: 50%; background: rgba(243, 156, 18, 0.2); color: #f39c12; border: 1px solid #f39c12; font-size: 20px; cursor: pointer; display: none; z-index: 1000; backdrop-filter: blur(5px); transition: all 0.3s ease; }
+    </style>
+</head>
+<body>
+
+<div id="ambient-light"></div>
+
+<nav class="top-nav">
+    <a href="index.html" style="color: #f39c12;">角色库</a>
+    <a href="weapons.html">武器库</a>
+    <a href="echoes.html">声骸库</a>
+</nav>
+
+<div id="userBar">
+    <a href="login.html" style="color: #f39c12; text-decoration: none; font-weight: bold;">🔑 漂泊者登录</a>
+</div>
+
+<h1>✦ 共鸣者档案库 ✦</h1>
+
+<div class="filter-console">
+    <input type="text" id="searchInput" placeholder="🔍 输入共鸣者姓名进行检索..." style="width: 280px;">
+    <select id="elementFilter" class="filter-select">
+        <option value="全部">✦ 全部属性</option>
+        <option value="衍射">衍射</option><option value="气动">气动</option><option value="导电">导电</option>
+        <option value="热熔">热熔</option><option value="冷凝">冷凝</option><option value="湮灭">湮灭</option>
+    </select>
+    <select id="rarityFilter" class="filter-select">
+        <option value="0">✦ 全部星级</option>
+        <option value="5">5星 共鸣者</option>
+        <option value="4">4星 共鸣者</option>
+    </select>
+</div>
+
+<div class="character-container" id="charList">
+    <p style="text-align: center; width: 100%; color: #666;">正在同步终端数据...</p>
+</div>
+
+<button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">▲</button>
+
+<script>
+    let allCharacters = [];
+
+    const elementColors = {
+        '衍射': 'rgba(255, 215, 0, 0.7)',
+        '导电': 'rgba(191, 85, 236, 0.7)',
+        '气动': 'rgba(0, 255, 127, 0.7)',
+        '冷凝': 'rgba(0, 191, 255, 0.7)',
+        '热熔': 'rgba(255, 69, 0, 0.7)',
+        '湮灭': 'rgba(255, 20, 147, 0.7)'
+    };
+
+    window.addEventListener('mousemove', (e) => {
+        const ambient = document.getElementById('ambient-light');
+        ambient.style.setProperty('--mouse-x', `${e.clientX}px`);
+        ambient.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
+
+    document.getElementById('charList').addEventListener('mousemove', (e) => {
+        const cards = document.querySelectorAll('.glow-card');
+        cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--card-mouse-x', `${e.clientX - rect.left}px`);
+            card.style.setProperty('--card-mouse-y', `${e.clientY - rect.top}px`);
+        });
+    });
+
+    async function checkLogin() {
+        try {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) return;
+            const response = await fetch('/api/user/info', { headers: { 'Authorization': 'Bearer ' + token } });
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                const user = result.data;
+                let html = `终端已接入：<a href="#" style="color:#f39c12; font-weight:bold; text-decoration:none;">${user.nickname}</a>`;
+                if (user.role === 1) html += `<a href="admin.html" class="admin-btn">核心控制台</a>`;
+                html += `<a href="javascript:void(0)" onclick="logout()" style="color:#e74c3c; text-decoration:none; margin-left:15px;">[断开]</a>`;
+                document.getElementById('userBar').innerHTML = html;
+            }
+        } catch (e) { console.log("身份验证失效"); }
+    }
+
+    function logout() {
+        if(confirm("确定要断开终端连接吗？")) {
+            localStorage.removeItem('jwt_token');
+            window.location.reload();
+        }
+    }
+
+    async function loadCharacters() {
+        try {
+            const response = await fetch('/api/characters');
+            const result = await response.json();
+            if (result.code === 200) {
+                allCharacters = result.data;
+                renderCards(allCharacters);
+            }
+        } catch (e) { console.error('档案加载失败'); }
+    }
+
+    function renderCards(dataList) {
+        const listDiv = document.getElementById('charList');
+        listDiv.innerHTML = '';
+        dataList.forEach(char => {
+            const card = document.createElement('div');
+            card.className = 'glow-card';
+            const glowColor = elementColors[char.element] || 'rgba(243, 156, 18, 0.7)';
+            card.style.setProperty('--elem-color', glowColor);
+
+            card.onclick = () => window.location.href = `detail.html?id=${char.id}`;
+            card.innerHTML = `
+                <div class="glow-card-inner">
+                    <div class="card-img-box">
+                        <img src="${char.imageUrl}" class="card-img" alt="${char.name}" onerror="this.src='images/default.jpg'">
+                    </div>
+                    <div class="card-info">
+                        <p class="card-name">${char.name}</p>
+                        <div>
+                            <span class="tag" style="color: #f1c40f; border-color: #f1c40f;">${char.rarity}星</span>
+                            <span class="tag" style="color: ${glowColor.replace('0.7', '1')}; border-color: ${glowColor.replace('0.7', '0.5')};">${char.element}</span>
+                        </div>
+                        <p class="desc">${char.description}</p>
+                    </div>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    function applyFilters() {
+        const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+        const element = document.getElementById('elementFilter').value;
+        const rarity = document.getElementById('rarityFilter').value;
+
+        const filtered = allCharacters.filter(char => {
+            const matchKeyword = char.name.toLowerCase().includes(keyword) || char.element.includes(keyword);
+            const matchElement = (element === '全部') || (char.element === element);
+            const matchRarity = (rarity === '0') || (char.rarity == rarity);
+            return matchKeyword && matchElement && matchRarity;
+        });
+        renderCards(filtered);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('elementFilter').addEventListener('change', applyFilters);
+    document.getElementById('rarityFilter').addEventListener('change', applyFilters);
+
+    window.addEventListener('scroll', () => {
+        document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
+    });
+
+    checkLogin();
+    loadCharacters();
+</script>
+</body>
+</html>

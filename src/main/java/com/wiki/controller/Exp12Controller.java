@@ -72,7 +72,8 @@ public class Exp12Controller {
         // 设置响应头，告诉浏览器这是一个 Excel 文件下载
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("utf-8");
-        String fileName = URLEncoder.encode("KuruoWiki_角色图鉴数据", "UTF-8").replaceAll("\\+", "%20");
+        // 在 exportExcel 方法中修改此行
+        String fileName = URLEncoder.encode("KuroWiki_角色图鉴数据", "UTF-8").replaceAll("\\+", "%20");
         response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
 
         // 查询数据库中的所有角色，并写入 Excel

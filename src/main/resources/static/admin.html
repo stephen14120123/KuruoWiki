@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>KuruoWiki - 管理员后台</title>
+    <!-- 引入 Bootstrap 5 (作为快速搭建界面的方案) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding-top: 50px; }
+        .sidebar { height: 100vh; position: fixed; left: 0; top: 0; padding-top: 50px; background-color: #343a40; }
+        .sidebar a { color: #fff; text-decoration: none; display: block; padding: 15px; cursor: pointer; }
+        .sidebar a:hover, .sidebar a.active { background-color: #495057; }
+        .main-content { margin-left: 200px; padding: 20px; }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="navbar navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">KuruoWiki 管理后台</a>
+        <div class="d-flex">
+            <span class="navbar-text me-3" id="adminName">Loading...</span>
+            <button class="btn btn-outline-light btn-sm" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+</nav>
+
+<!-- 左侧边栏 -->
+<div class="sidebar" style="width: 200px;" id="sidebar">
+    <a onclick="loadUsers()" id="nav-users">👤 用户管理</a>
+    <a onclick="loadStrategies()" id="nav-strategies">📚 攻略管理</a>
+    <a onclick="loadCharacters()" id="nav-characters">✨ 角色图鉴管理</a>
+    <a onclick="loadWeapons()" id="nav-weapons">⚔️ 武器图鉴管理</a>
+    <a onclick="loadEchoes()" id="nav-echoes">🔮 声骸图鉴管理</a>
+    <hr style="border-color: #666;">
+    <a href="/">🏠 返回前台首页</a>
+</div>
+
+<!-- 右侧主内容区 -->
+<div class="main-content">
+    <div class="header-actions">
+        <h2 id="pageTitle">欢迎来到管理后台</h2>
+        <button id="addBtn" class="btn btn-success" style="display: none;" onclick="openAddModal()">＋ 新增记录</button>
+    </div>
+    <hr>
+
+    <!-- 数据表格容器 -->
+    <div id="tableContainer">
+        <p class="text-muted">请点击左侧菜单查看数据。</p>
+    </div>
+</div>
+
+<!-- 统一的模态框 (Modal) 用于新增和编辑图鉴数据 -->
+<div class="modal fade" id="dataModal" tabindex="-1" aria-labelledby="dataModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dataModalLabel">编辑数据</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- 动态表单将渲染在这里 -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="saveData()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 引入 Bootstrap JS (需要用到弹窗) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let currentModule = ''; // 记录当前在哪个模块 (users, strategies, characters, weapons, echoes)
+    let modalInstance = null; // Bootstrap modal 实例
+
+    // --- 页面初始化与权限验证 ---
+    window.onload = function() {
+        modalInstance = new bootstrap.Modal(document.getElementById('dataModal'));
+
+        fetch('/api/user/info')
+            .then(res => res.json())
+            .then(data => {
+                let user = null;
+                if (data.code === 200 && data.data) user = data.data;
+                else if (data.nickname) user = data;
+
+                if (user && user.role === 1) {
+                    document.getElementById('adminName').innerText = '管理员: ' + user.nickname;
+                    loadUsers(); // 默认加载用户列表
+                } else {
+                    alert('未登录或权限不足！将跳转到首页。');
+                    window.location.href = '/';
+                }
+            })
+            .catch(err => {
+                alert('请先登录！');
+                window.location.href = '/login.html';
+            });
+    }
+
+    // 更新侧边栏高亮状态
+    function setActiveNav(id) {
+        document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
+        if(id) document.getElementById(id).classList.add('active');
+    }
+
+    // ==========================================
+    // 1. 用户管理模块
+    // ==========================================
+    function loadUsers() {
+        currentModule = 'users';
+        setActiveNav('nav-users');
+        document.getElementById('pageTitle').innerText = '用户管理';
+        document.getElementById('addBtn').style.display = 'none'; // 用户模块暂不提供后台添加
+        document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
+
+        fetch('/api/admin/users').then(res => res.json()).then(data => {
+            if(data.code !== 200) return alert(data.message);
+            let html = `
+                <table class="table table-striped table-hover">
+                    <thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>创建时间</th><th>操作</th></tr></thead>
+                    <tbody>
+            `;
+            data.data.forEach(u => {
+                let roleStr = u.role === 1 ? '<span class="badge bg-danger">管理员</span>' : '<span class="badge bg-secondary">普通用户</span>';
+                let dateStr = new Date(u.createTime).toLocaleString();
+                html += `
+                    <tr>
+                        <td>${u.id}</td><td>${u.username}</td><td>${u.nickname}</td><td>${roleStr}</td><td>${dateStr}</td>
+                        <td>${u.role !== 1 ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})">封禁/删除</button>` : '---'}</td>
+                    </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('tableContainer').innerHTML = html;
+        });
+    }
+
+    function deleteUser(id) {
+        if(!confirm('确定要删除该用户吗？此操作不可逆！')) return;
+        fetch('/api/admin/user/delete', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'userId=' + id })
+        .then(res => res.json()).then(data => { alert(data.message); if(data.code === 200) loadUsers(); });
+    }
+
+    // ==========================================
+    // 2. 攻略管理模块
+    // ==========================================
+    function loadStrategies() {
+        currentModule = 'strategies';
+        setActiveNav('nav-strategies');
+        document.getElementById('pageTitle').innerText = '攻略管理';
+        document.getElementById('addBtn').style.display = 'none'; // 攻略由前台用户添加
+        document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
+
+        fetch('/api/admin/strategies').then(res => res.json()).then(data => {
+            if(data.code !== 200) return alert(data.message);
+            let html = `
+                <table class="table table-striped table-hover">
+                    <thead><tr><th>ID</th><th>角色</th><th>标题</th><th>作者</th><th>发布时间</th><th>操作</th></tr></thead>
+                    <tbody>
+            `;
+            data.data.forEach(s => {
+                let dateStr = new Date(s.createTime).toLocaleString();
+                html += `
+                    <tr>
+                        <td>${s.id}</td><td>${s.characterName || 'N/A'}</td><td>${s.title}</td><td>${s.authorName || 'N/A'}</td><td>${dateStr}</td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteStrategy(${s.id})">强制删除</button></td>
+                    </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('tableContainer').innerHTML = html;
+        });
+    }
+
+    function deleteStrategy(id) {
+        if(!confirm('确定要强制删除这条攻略吗？')) return;
+        fetch('/api/admin/strategy/delete', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'strategyId=' + id })
+        .then(res => res.json()).then(data => { alert(data.message); if(data.code === 200) loadStrategies(); });
+    }
+
+    // ==========================================
+    // 3. 角色图鉴管理模块
+    // ==========================================
+    function loadCharacters() {
+        currentModule = 'characters';
+        setActiveNav('nav-characters');
+        document.getElementById('pageTitle').innerText = '角色图鉴管理';
+        document.getElementById('addBtn').style.display = 'inline-block';
+        document.getElementById('addBtn').innerText = '＋ 新增角色';
+        document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
+
+        fetch('/api/characters').then(res => res.json()).then(data => {
+            // 把数据挂载到全局变量方便编辑时读取
+            window.characterData = data;
+            let html = `
+                <table class="table table-striped table-hover align-middle">
+                    <thead><tr><th>ID</th><th>立绘</th><th>角色名</th><th>星级</th><th>属性</th><th>操作</th></tr></thead>
+                    <tbody>
+            `;
+            data.forEach(c => {
+                let img = c.imageUrl ? `<img src="${c.imageUrl}" style="height:40px; border-radius:4px;">` : '无';
+                html += `
+                    <tr>
+                        <td>${c.id}</td><td>${img}</td><td>${c.name}</td><td>${c.rarity}星</td><td>${c.element}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="openEditModal(${c.id})">编辑</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteData('character', ${c.id})">删除</button>
+                        </td>
+                    </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('tableContainer').innerHTML = html;
+        });
+    }
+
+    // ==========================================
+    // 4. 武器图鉴管理模块
+    // ==========================================
+    function loadWeapons() {
+        currentModule = 'weapons';
+        setActiveNav('nav-weapons');
+        document.getElementById('pageTitle').innerText = '武器图鉴管理';
+        document.getElementById('addBtn').style.display = 'inline-block';
+        document.getElementById('addBtn').innerText = '＋ 新增武器';
+        document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
+
+        fetch('/api/weapon/list').then(res => res.json()).then(data => {
+            window.weaponData = data;
+            let html = `
+                <table class="table table-striped table-hover align-middle">
+                    <thead><tr><th>ID</th><th>立绘</th><th>武器名</th><th>星级</th><th>类型</th><th>基础攻击</th><th>操作</th></tr></thead>
+                    <tbody>
+            `;
+            data.forEach(w => {
+                let img = w.imageUrl ? `<img src="${w.imageUrl}" style="height:40px; border-radius:4px;">` : '无';
+                html += `
+                    <tr>
+                        <td>${w.id}</td><td>${img}</td><td>${w.name}</td><td>${w.rarity}星</td><td>${w.weaponType}</td><td>${w.baseAtk}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="openEditModal(${w.id})">编辑</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteData('weapon', ${w.id})">删除</button>
+                        </td>
+                    </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('tableContainer').innerHTML = html;
+        });
+    }
+
+    // ==========================================
+    // 5. 声骸图鉴管理模块
+    // ==========================================
+    function loadEchoes() {
+        currentModule = 'echoes';
+        setActiveNav('nav-echoes');
+        document.getElementById('pageTitle').innerText = '声骸图鉴管理';
+        document.getElementById('addBtn').style.display = 'inline-block';
+        document.getElementById('addBtn').innerText = '＋ 新增声骸';
+        document.getElementById('tableContainer').innerHTML = '<p>加载中...</p>';
+
+        fetch('/api/echo/list').then(res => res.json()).then(data => {
+            window.echoData = data;
+            let html = `
+                <table class="table table-striped table-hover align-middle">
+                    <thead><tr><th>ID</th><th>立绘</th><th>声骸名</th><th>COST</th><th>合鸣属性</th><th>操作</th></tr></thead>
+                    <tbody>
+            `;
+            data.forEach(e => {
+                let img = e.imageUrl ? `<img src="${e.imageUrl}" style="height:40px; border-radius:4px;">` : '无';
+                html += `
+                    <tr>
+                        <td>${e.id}</td><td>${img}</td><td>${e.name}</td><td>${e.cost}</td><td>${e.sonataEffect}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="openEditModal(${e.id})">编辑</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteData('echo', ${e.id})">删除</button>
+                        </td>
+                    </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('tableContainer').innerHTML = html;
+        });
+    }
+
+    // ==========================================
+    // 核心表单与提交逻辑 (统一处理 角色、武器、声骸)
+    // ==========================================
+
+    function openAddModal() {
+        document.getElementById('dataModalLabel').innerText = `新增 ${getModuleName()}`;
+        renderForm(null); // null表示空表单
+        modalInstance.show();
+    }
+
+    function openEditModal(id) {
+        document.getElementById('dataModalLabel').innerText = `编辑 ${getModuleName()}`;
+        let dataObj = null;
+        if(currentModule === 'characters') dataObj = window.characterData.find(item => item.id === id);
+        if(currentModule === 'weapons') dataObj = window.weaponData.find(item => item.id === id);
+        if(currentModule === 'echoes') dataObj = window.echoData.find(item => item.id === id);
+
+        renderForm(dataObj);
+        modalInstance.show();
+    }
+
+    function getModuleName() {
+        if(currentModule === 'characters') return '角色';
+        if(currentModule === 'weapons') return '武器';
+        if(currentModule === 'echoes') return '声骸';
+        return '';
+    }
+
+    // 动态渲染表单结构
+    function renderForm(data) {
+        let html = `<form id="dataForm"><input type="hidden" name="id" value="${data ? data.id : ''}">`;
+
+        if (currentModule === 'characters') {
+            html += `
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">角色名称</label>
+                        <input type="text" class="form-control" name="name" value="${data ? data.name : ''}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">星级</label>
+                        <select class="form-select" name="rarity">
+                            <option value="5" ${data && data.rarity==5 ? 'selected':''}>5星</option>
+                            <option value="4" ${data && data.rarity==4 ? 'selected':''}>4星</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">属性 (如:衍射/热熔)</label>
+                        <input type="text" class="form-control" name="element" value="${data ? data.element : ''}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">武器类型 (如:长刃/迅刀)</label>
+                        <input type="text" class="form-control" name="weaponType" value="${data ? data.weaponType : ''}" required>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">立绘图片 URL</label>
+                        <input type="text" class="form-control" name="imageUrl" value="${data ? data.imageUrl : 'images/default_char.png'}">
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">技能描述</label>
+                        <textarea class="form-control" name="description" rows="3">${data ? data.description : ''}</textarea>
+                    </div>
+                    <!-- 战斗数值面板 -->
+                    <div class="col-md-3 mb-2"><label class="form-label">生命值 (HP)</label><input type="number" class="form-control" name="hp" value="${data ? data.hp : 0}"></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">攻击力 (ATK)</label><input type="number" class="form-control" name="atk" value="${data ? data.atk : 0}"></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">防御力 (DEF)</label><input type="number" class="form-control" name="def" value="${data ? data.def : 0}"></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">暴击率 (CRIT)</label><input type="number" class="form-control" name="crit" value="${data ? data.crit : 0}"></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">能量 (Energy)</label><input type="number" class="form-control" name="energy" value="${data ? data.energy : 0}"></div>
+                </div>
+            `;
+        }
+        else if (currentModule === 'weapons') {
+            html += `
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="form-label">武器名称</label><input type="text" class="form-control" name="name" value="${data ? data.name : ''}" required></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">星级</label><input type="number" class="form-control" name="rarity" value="${data ? data.rarity : 5}"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">武器类型</label><input type="text" class="form-control" name="weaponType" value="${data ? data.weaponType : ''}"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">基础攻击力</label><input type="number" class="form-control" name="baseAtk" value="${data ? data.baseAtk : 0}"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">副词条类型</label><input type="text" class="form-control" name="subStatType" value="${data ? data.subStatType : ''}"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">副词条数值</label><input type="text" class="form-control" name="subStatValue" value="${data ? data.subStatValue : ''}"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">图片 URL</label><input type="text" class="form-control" name="imageUrl" value="${data ? data.imageUrl : ''}"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">技能名称</label><input type="text" class="form-control" name="skillName" value="${data ? data.skillName : ''}"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">技能描述</label><textarea class="form-control" name="skillDesc" rows="3">${data ? data.skillDesc : ''}</textarea></div>
+                </div>
+            `;
+        }
+        else if (currentModule === 'echoes') {
+            html += `
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="form-label">声骸名称</label><input type="text" class="form-control" name="name" value="${data ? data.name : ''}" required></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">COST值 (1, 3, 4)</label><input type="number" class="form-control" name="cost" value="${data ? data.cost : 1}"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">合鸣属性</label><input type="text" class="form-control" name="sonataEffect" value="${data ? data.sonataEffect : ''}" placeholder="如：沉日劫明, 凝夜白霜"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">图片 URL</label><input type="text" class="form-control" name="imageUrl" value="${data ? data.imageUrl : ''}"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">技能描述</label><textarea class="form-control" name="skillDesc" rows="4">${data ? data.skillDesc : ''}</textarea></div>
+                </div>
+            `;
+        }
+        html += '</form>';
+        document.getElementById('modalBody').innerHTML = html;
+    }
+
+    // 保存数据 (提交表单)
+    function saveData() {
+        const form = document.getElementById('dataForm');
+        // HTML5 原生表单校验
+        if(!form.reportValidity()) return;
+
+        const formData = new FormData(form);
+        const isUpdate = formData.get('id') !== ''; // 有 id 则是更新，没有则是新增
+        formData.append('action', isUpdate ? 'update' : 'add');
+
+        // 动态决定请求的 API
+        let apiUrl = '';
+        if(currentModule === 'characters') apiUrl = '/api/admin/character';
+        if(currentModule === 'weapons') apiUrl = '/api/admin/weapon';
+        if(currentModule === 'echoes') apiUrl = '/api/admin/echo';
+
+        // 由于 FormData 转换为 application/x-www-form-urlencoded
+        const urlEncodedData = new URLSearchParams(formData).toString();
+
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: urlEncodedData
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            if(data.code === 200) {
+                modalInstance.hide();
+                // 刷新当前模块表格
+                if(currentModule === 'characters') loadCharacters();
+                if(currentModule === 'weapons') loadWeapons();
+                if(currentModule === 'echoes') loadEchoes();
+            }
+        });
+    }
+
+    // 通用的删除数据方法
+    function deleteData(moduleName, id) {
+        if(!confirm('确定要删除这条档案吗？删除后前台将无法展示该数据！')) return;
+
+        let apiUrl = `/api/admin/${moduleName}`;
+
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `action=delete&id=${id}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            if(data.code === 200) {
+                if(currentModule === 'characters') loadCharacters();
+                if(currentModule === 'weapons') loadWeapons();
+                if(currentModule === 'echoes') loadEchoes();
+            }
+        });
+    }
+
+    // --- 退出登录 ---
+    function logout() {
+        fetch('/api/user/logout').then(() => { window.location.href = '/login.html'; });
+    }
+</script>
+
+</body>
+</html>
