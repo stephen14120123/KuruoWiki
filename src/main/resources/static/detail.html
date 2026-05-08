@@ -2,79 +2,423 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>共鸣者档案详情</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
-        body {
-            background-color: #0d0d0d;
-            color: #fff;
-            font-family: "Microsoft YaHei", sans-serif;
+        :root {
+            --primary-color: #f39c12;
+            --primary-dark: #e67e22;
+            --bg-dark: #0a0a0a;
+            --bg-card: #0d0d0d;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #030303 0%, #0a0a1a 50%, #030303 100%);
+            color: #e0e0e0;
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
             min-height: 100vh;
+            padding: 20px;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 18px;
+            z-index: 100;
+            padding: 10px 15px;
+            background: rgba(30, 30, 30, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background: rgba(30, 30, 30, 0.8);
+            border-color: var(--primary-color);
+            transform: translateX(-5px);
         }
 
         .container {
-            width: 90%;
-            max-width: 1100px;
-            background: #161616;
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(22, 22, 22, 0.5);
             border-radius: 20px;
             display: flex;
             overflow: hidden;
-            border: 1px solid #333;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* 左侧：立绘大图 */
         .left-panel {
             flex: 1;
-            background: #000;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(20, 20, 30, 0.6) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            border-right: 1px solid #333;
+            border-right: 1px solid var(--border-color);
+            min-height: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(243, 156, 18, 0.1) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         #charImg {
             width: 100%;
-            height: 600px;
+            height: 100%;
             object-fit: contain;
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.6s ease-out;
         }
 
-        /* 右侧：档案信息与雷达图 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 右侧：档案信息 */
         .right-panel {
-            flex: 2;
-            padding: 40px;
+            flex: 1.2;
+            padding: 50px;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
             max-height: 90vh;
         }
 
-        .header { border-bottom: 2px solid #f39c12; padding-bottom: 15px; margin-bottom: 20px; }
-        .name { font-size: 42px; font-weight: bold; margin: 0; }
-        .tags { margin-top: 10px; }
-        .tag { padding: 4px 15px; border-radius: 5px; background: #333; margin-right: 10px; font-size: 14px; }
+        .right-panel::-webkit-scrollbar {
+            width: 6px;
+        }
 
-        .description { line-height: 1.8; color: #aaa; margin-bottom: 30px; }
+        .right-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
 
+        .right-panel::-webkit-scrollbar-thumb {
+            background: rgba(243, 156, 18, 0.3);
+            border-radius: 10px;
+        }
+
+        .right-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(243, 156, 18, 0.5);
+        }
+
+        /* 标题区域 */
+        .header {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out 0.1s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .name {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 0 0 15px 0;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tags {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(243, 156, 18, 0.1);
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .tag:hover {
+            background: rgba(243, 156, 18, 0.2);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* 描述 */
+        .description {
+            line-height: 1.8;
+            color: #aaa;
+            margin-bottom: 35px;
+            font-size: 14px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        /* 雷达图 */
         #radarChart {
             width: 100%;
             height: 350px;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        /* 攻略区域 */
+        .strategies-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #strategyList {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             margin-bottom: 30px;
         }
 
-        .back-btn {
-            position: absolute; top: 20px; left: 20px;
-            color: #f39c12; text-decoration: none; font-size: 18px;
-            z-index: 10;
+        .strategy-card {
+            background: rgba(30, 30, 30, 0.6);
+            padding: 18px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
         }
 
-        /* 滚动条美化 */
-        .right-panel::-webkit-scrollbar { width: 6px; }
-        .right-panel::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .strategy-card:hover {
+            background: rgba(30, 30, 30, 0.8);
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.1);
+        }
+
+        .strategy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .strategy-title {
+            color: var(--primary-color);
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .strategy-meta {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .strategy-delete {
+            color: #e74c3c;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.3s ease;
+        }
+
+        .strategy-delete:hover {
+            color: #c0392b;
+            text-decoration: underline;
+        }
+
+        .strategy-content {
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 30px;
+            font-size: 14px;
+        }
+
+        /* 发布表单 */
+        .post-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            animation: fadeInUp 0.6s ease-out 0.5s both;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        #postTitle,
+        #postContent {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(25, 25, 25, 0.6);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            resize: vertical;
+        }
+
+        #postTitle:focus,
+        #postContent:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: rgba(25, 25, 25, 0.8);
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.2);
+        }
+
+        #postContent {
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(243, 156, 18, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                min-height: 400px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .right-panel {
+                padding: 40px;
+                max-height: none;
+            }
+
+            .name {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .back-btn {
+                top: 15px;
+                left: 15px;
+                font-size: 16px;
+                padding: 8px 12px;
+            }
+
+            .right-panel {
+                padding: 25px;
+            }
+
+            .name {
+                font-size: 26px;
+            }
+
+            #radarChart {
+                height: 280px;
+            }
+
+            .strategy-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .strategy-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -90,28 +434,36 @@
             <p id="charName" class="name">加载中...</p>
             <div class="tags">
                 <span id="charRarity" class="tag"></span>
-                <span id="charElement" class="tag" style="color: #3498db;"></span>
+                <span id="charElement" class="tag"></span>
             </div>
         </div>
         <p id="charDesc" class="description"></p>
 
         <div id="radarChart"></div>
 
-        <div style="margin-top: 30px;">
-            <h3 style="color: #f39c12; border-left: 4px solid #f39c12; padding-left: 10px;">档案库攻略记录</h3>
+        <div class="strategies-section">
+            <h3 class="section-title">📚 档案库攻略记录</h3>
             <div id="strategyList"></div>
         </div>
 
-        <div style="margin-top: 40px; border-top: 1px solid #333; padding-top: 20px;">
-            <h3>撰写共鸣攻略</h3>
-            <input type="text" id="postTitle" placeholder="请输入标题 (如：声骸搭配心得)"
-                   style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:1px solid #444; color:#fff; border-radius:5px; box-sizing: border-box;">
-            <textarea id="postContent" placeholder="在此输入你的实战建议..." rows="5"
-                      style="width:100%; padding:10px; background:#222; border:1px solid #444; color:#fff; border-radius:5px; box-sizing: border-box;"></textarea>
-            <button onclick="submitPost()"
-                    style="margin-top:10px; padding:10px 25px; background:#f39c12; border:none; border-radius:5px; cursor:pointer; font-weight:bold; color: #000;">
-                发布档案
-            </button>
+        <div class="post-section">
+            <h3 class="section-title">✍️ 撰写共鸣攻略</h3>
+            <div class="form-group">
+                <label class="form-label">攻略标题</label>
+                <input 
+                    type="text" 
+                    id="postTitle" 
+                    placeholder="请输入标题 (如：声骸搭配心得)"
+                >
+            </div>
+            <div class="form-group">
+                <label class="form-label">攻略内容</label>
+                <textarea 
+                    id="postContent" 
+                    placeholder="在此输入你的实战建议..."
+                ></textarea>
+            </div>
+            <button class="submit-btn" onclick="submitPost()">🚀 发布档案</button>
         </div>
     </div>
 </div>
@@ -120,7 +472,6 @@
     const urlParams = new URLSearchParams(window.location.search);
     const charId = urlParams.get('id');
 
-    // 1. 加载角色详情信息
     async function fetchDetail() {
         try {
             const response = await fetch(`/api/characters/${charId}`);
@@ -129,7 +480,7 @@
             if (result.code === 200) {
                 const data = result.data;
                 document.getElementById('charName').innerText = data.name;
-                document.getElementById('charRarity').innerText = data.rarity + "星";
+                document.getElementById('charRarity').innerText = `⭐ ${data.rarity}星`;
                 document.getElementById('charElement').innerText = data.element;
                 document.getElementById('charDesc').innerText = data.description;
                 document.getElementById('charImg').src = data.imageUrl;
@@ -142,33 +493,37 @@
         }
     }
 
-    // 2. 🚨 JWT 升级：加载攻略列表 (适配 Result 结构)
     async function loadStrategies() {
         try {
             const response = await fetch(`/api/strategies?characterId=${charId}`);
             const result = await response.json();
 
             if (result.code === 200) {
-                const list = result.data; // 提取数组
+                const list = result.data;
                 const listDiv = document.getElementById('strategyList');
-                listDiv.innerHTML = list.length === 0 ? '<p style="color:#666">暂无攻略记录，快来抢首发！</p>' : '';
+                
+                if (list.length === 0) {
+                    listDiv.innerHTML = '<div class="empty-state">暂无攻略记录，快来抢首发！</div>';
+                    return;
+                }
 
+                listDiv.innerHTML = '';
                 list.forEach(item => {
                     const date = new Date(item.createTime).toLocaleString();
-                    const post = document.createElement('div');
-                    post.style = "background:#222; padding:15px; border-radius:8px; margin-bottom:15px; border-left:4px solid #f39c12;";
-                    post.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                            <strong style="color:#f39c12; font-size:18px;">${item.title}</strong>
-                            <div>
-                                <span style="font-size:12px; color:#666;">${item.authorName} · ${date}</span>
-                                <a href="javascript:void(0)" onclick="confirmDelete(${item.id})"
-                                   style="color:#e74c3c; margin-left:15px; text-decoration:none; font-size:12px;">[删除]</a>
+                    const card = document.createElement('div');
+                    card.className = 'strategy-card';
+                    card.innerHTML = `
+                        <div class="strategy-header">
+                            <div class="strategy-title">${item.title}</div>
+                            <div class="strategy-meta">
+                                <span>👤 ${item.authorName}</span>
+                                <span>📅 ${date}</span>
+                                <a href="javascript:void(0)" onclick="confirmDelete(${item.id})" class="strategy-delete">[删除]</a>
                             </div>
                         </div>
-                        <p style="margin:0; color:#ccc; font-size:14px; white-space: pre-wrap;">${item.content}</p>
+                        <p class="strategy-content">${item.content}</p>
                     `;
-                    listDiv.appendChild(post);
+                    listDiv.appendChild(card);
                 });
             }
         } catch (err) {
@@ -176,7 +531,6 @@
         }
     }
 
-    // 3. 🚨 JWT 升级：删除攻略 (使用 DELETE 方法并携带 Token)
     async function confirmDelete(id) {
         if (!confirm("确定要从档案库中永久抹除这条记录吗？")) return;
 
@@ -197,35 +551,34 @@
             const result = await response.json();
 
             if (result.code === 200) {
-                alert("💥 抹除成功！");
+                showNotification("💥 抹除成功！", "success");
                 loadStrategies();
             } else {
-                alert(result.message); // 显示如“越权操作”等后端提示
+                showNotification(result.message, "error");
                 if (result.code === 401) window.location.href = 'login.html';
             }
         } catch (err) {
             console.error("删除出错", err);
+            showNotification("删除失败，请重试", "error");
         }
     }
 
-    // 4. 🚨 JWT 升级：提交新攻略 (使用 JSON 格式并携带 Token)
     async function submitPost() {
         const title = document.getElementById('postTitle').value;
         const content = document.getElementById('postContent').value;
         const token = localStorage.getItem('jwt_token');
 
         if (!token) {
-            alert("⚠️ 终端拒绝：请先进行身份验证！");
+            showNotification("⚠️ 请先进行身份验证！", "error");
             window.location.href = 'login.html';
             return;
         }
 
         if(!title || !content) {
-            alert("标题和内容不能为空！");
+            showNotification("标题和内容不能为空！", "error");
             return;
         }
 
-        // 构造 JSON 数据
         const data = {
             characterId: parseInt(charId),
             title: title,
@@ -244,20 +597,44 @@
 
             const result = await response.json();
             if(result.code === 200) {
-                alert("🎉 档案同步成功！");
+                showNotification("🎉 档案同步成功！", "success");
                 document.getElementById('postTitle').value = '';
                 document.getElementById('postContent').value = '';
                 loadStrategies();
             } else {
-                alert(result.message);
+                showNotification(result.message, "error");
                 if (result.code === 401) window.location.href = 'login.html';
             }
         } catch (err) {
             console.error("网络异常", err);
+            showNotification("网络异常，请重试", "error");
         }
     }
 
-    // 5. 初始化雷达图
+    function showNotification(message, type = 'info') {
+        const notif = document.createElement('div');
+        notif.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#f39c12'};
+            background: ${type === 'success' ? 'rgba(39, 174, 96, 0.9)' : type === 'error' ? 'rgba(231, 76, 60, 0.9)' : 'rgba(243, 156, 18, 0.9)'};
+            color: white;
+        `;
+        notif.textContent = message;
+        document.body.appendChild(notif);
+
+        setTimeout(() => {
+            notif.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+
     function initRadar(data) {
         const chartDom = document.getElementById('radarChart');
         const myChart = echarts.init(chartDom, 'dark');
@@ -272,21 +649,48 @@
                     { name: '攻击力', max: 100 }
                 ],
                 splitArea: { show: false },
-                axisLine: { lineStyle: { color: '#444' } }
+                axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } },
+                splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } }
             },
             series: [{
                 type: 'radar',
                 data: [{
                     value: [data.hp, data.energy, data.crit, data.def, data.atk],
                     name: '能力评估',
-                    areaStyle: { color: 'rgba(243, 156, 18, 0.5)' },
-                    lineStyle: { color: '#f39c12' },
+                    areaStyle: { color: 'rgba(243, 156, 18, 0.3)' },
+                    lineStyle: { color: '#f39c12', width: 2 },
                     itemStyle: { color: '#f39c12' }
                 }]
             }]
         };
         myChart.setOption(option);
+        window.addEventListener('resize', () => myChart.resize());
     }
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 
     fetchDetail();
     loadStrategies();

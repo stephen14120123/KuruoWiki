@@ -2,47 +2,211 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>KuruoWiki - 声骸图鉴</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声骸库 - KuroWiki</title>
     <style>
-        body {
-            background-color: #080a0a;
-            color: #e0e0e0;
-            font-family: "Microsoft YaHei", sans-serif;
-            margin: 0;
-            padding: 0;
+        :root {
+            --mouse-x: 50vw;
+            --mouse-y: 50vh;
+            --card-mouse-x: 50%;
+            --card-mouse-y: 50%;
+            --elem-color: rgba(243, 156, 18, 0.7);
+            --primary-color: #f39c12;
+            --primary-dark: #e67e22;
+            --bg-dark: #0a0a0a;
+            --bg-card: #0d0d0d;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* 全局导航栏 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            color: #e0e0e0;
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            position: relative;
+        }
+
+        /* 赛博朋克网格背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(243, 156, 18, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(243, 156, 18, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 背景光圈 */
+        #ambient-light {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(243, 156, 18, 0.08),
+                transparent 50%
+            );
+            transition: background 0.1s ease;
+        }
+
+        /* 导航栏 */
         .top-nav {
-            background-color: #161a16;
+            background: rgba(10, 10, 10, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
             display: flex;
             justify-content: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #2ecc7133;
+            gap: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .top-nav a {
-            color: #f2f2f2;
+            color: #ccc;
             text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0 20px;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 18px 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            border-bottom: 2px solid transparent;
+        }
+
+        .top-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
         }
 
         .top-nav a:hover {
-            background-color: #2ecc71;
-            color: #1a1a1a;
+            color: var(--primary-color);
         }
 
+        .top-nav a:hover::after {
+            width: 100%;
+        }
+
+        .top-nav a:nth-child(3) {
+            color: var(--primary-color);
+        }
+
+        .top-nav a:nth-child(3)::after {
+            width: 100%;
+        }
+
+        /* 用户栏 */
+        #userBar {
+            position: absolute;
+            top: 15px;
+            right: 40px;
+            font-size: 13px;
+            color: #aaa;
+            z-index: 105;
+            background: rgba(30, 30, 30, 0.6);
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        #userBar:hover {
+            background: rgba(30, 30, 30, 0.8);
+            border-color: rgba(243, 156, 18, 0.3);
+        }
+
+        .admin-btn {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            border: 1px solid #e74c3c;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        /* 标题 */
         h1 {
             text-align: center;
-            color: #2ecc71;
-            margin: 40px 0 20px;
+            color: var(--primary-color);
+            margin-top: 60px;
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+            font-weight: 300;
+            font-size: 42px;
+            position: relative;
+            z-index: 10;
+            text-shadow: 0 0 30px rgba(243, 156, 18, 0.3);
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 10;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* 筛选控制台 */
@@ -51,258 +215,415 @@
             justify-content: center;
             align-items: center;
             gap: 15px;
-            margin-bottom: 40px;
+            margin-bottom: 60px;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+            padding: 0 20px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
         }
 
-        /* 专为声骸库定制的绿色主题搜索框 */
-        .search-input {
-            padding: 10px 15px;
-            background: #0f1411;
-            border: 1px solid #223322;
+        .filter-select,
+        #searchInput {
+            padding: 12px 18px;
+            background: rgba(25, 25, 25, 0.6);
+            border: 1px solid var(--border-color);
             color: #fff;
-            border-radius: 8px;
+            border-radius: 10px;
             outline: none;
-            width: 250px;
-            font-size: 14px;
             transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            font-size: 14px;
         }
 
-        .search-input:focus {
-            border-color: #2ecc71;
-            box-shadow: 0 0 12px rgba(46, 204, 113, 0.4), inset 0 2px 4px rgba(0,0,0,0.5);
-            background: #111a14;
+        .filter-select:hover,
+        #searchInput:focus {
+            border-color: var(--primary-color);
+            background: rgba(25, 25, 25, 0.8);
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.2);
         }
 
-        .search-input::placeholder {
-            color: #556655;
+        #searchInput {
+            width: 280px;
         }
 
         .filter-select {
-            padding: 10px 15px;
-            background: #111a14;
-            border: 1px solid #2ecc71;
-            color: #fff;
-            border-radius: 8px;
             cursor: pointer;
-            outline: none;
-            transition: all 0.3s;
         }
 
-        .filter-select:hover {
-            box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+        .filter-select option {
+            background: #1a1a1a;
+            color: white;
         }
 
-        /* 网格布局 */
-        .echo-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-            gap: 30px;
+        /* 卡片容器 */
+        .character-container {
             max-width: 1400px;
-            margin: 0 auto;
+            margin: 0 auto 80px auto;
             padding: 20px;
-            justify-content: center;
-        }
-
-        .echo-card {
-            background-color: #0f1411;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 40px;
             position: relative;
+            z-index: 10;
+        }
+
+        /* 流光卡片 */
+        .glow-card {
+            height: 520px;
+            border-radius: 16px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            padding: 1px;
             overflow: hidden;
-            border: 1px solid #223322;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-            aspect-ratio: 16 / 9;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation: fadeInUp 0.6s ease-out both;
         }
 
-        .echo-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(46, 204, 113, 0.2);
-            border-color: #2ecc71;
+        .glow-card:nth-child(1) { animation-delay: 0.3s; }
+        .glow-card:nth-child(2) { animation-delay: 0.35s; }
+        .glow-card:nth-child(3) { animation-delay: 0.4s; }
+        .glow-card:nth-child(n+4) { animation-delay: 0.45s; }
+
+        .glow-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.8);
         }
 
-        .echo-img-box img {
+        .glow-card::before {
+            content: "";
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            z-index: 1;
+            background: radial-gradient(
+                800px circle at var(--card-mouse-x) var(--card-mouse-y),
+                var(--elem-color),
+                transparent 60%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease-out;
+            z-index: 0;
         }
 
-        /* 底部遮罩文字层 */
-        .echo-overlay {
+        .character-container:hover .glow-card::before {
+            opacity: 1;
+        }
+
+        .glow-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-card);
+            border-radius: 15px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .glow-card-inner::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                500px circle at var(--card-mouse-x) var(--card-mouse-y),
+                rgba(255, 255, 255, 0.06),
+                transparent 45%
+            );
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .card-img-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            transition: transform 0.6s ease;
+        }
+
+        .glow-card:hover .card-img {
+            transform: scale(1.08);
+        }
+
+        .card-info {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(to top,
-            rgba(0, 0, 0, 0.95) 0%,
-            rgba(0, 0, 0, 0.6) 45%,
-            transparent 100%);
-            color: #fff;
-            padding: 20px;
-            z-index: 2;
+            height: 48%;
+            padding: 35px 20px 20px 20px;
+            z-index: 10;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.75) 45%, transparent 100%);
         }
 
-        .echo-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 12px;
-        }
-
-        .echo-name {
+        .card-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
             color: #fff;
-            font-size: 26px;
-            font-weight: bold;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            text-shadow: 0 3px 15px rgba(0, 0, 0, 1);
         }
 
-        .cost-badge {
-            background-color: rgba(46, 204, 113, 0.2);
-            color: #2ecc71;
-            padding: 4px 12px;
+        .tag {
+            display: inline-block;
+            padding: 5px 12px;
             border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            border: 1px solid #2ecc71;
-            backdrop-filter: blur(4px);
+            font-size: 12px;
+            margin-right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
         }
 
-        .sonata-tag {
+        .tag:hover {
+            border-color: var(--primary-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .desc {
             font-size: 13px;
-            color: #d2b4de;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        /* 技能描述盒 */
-        .skill-box {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 4px solid #2ecc71;
-            backdrop-filter: blur(6px);
-        }
-
-        .skill-desc {
-            color: #bbb;
-            margin: 0;
-            font-size: 13px;
-            line-height: 1.5;
+            color: #ccc;
+            line-height: 1.6;
+            margin-top: 10px;
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
         }
 
-        /* 空状态提示 */
-        .empty-state {
+        /* 返回顶部按钮 */
+        #backToTop {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.3) 0%, rgba(230, 126, 34, 0.2) 100%);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            font-size: 20px;
+            cursor: pointer;
+            display: none;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.2);
+        }
+
+        #backToTop:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(243, 156, 18, 0.4);
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.5) 0%, rgba(230, 126, 34, 0.3) 100%);
+        }
+
+        /* 加载提示 */
+        .loading-text {
             text-align: center;
-            width: 100%;
             color: #666;
-            font-size: 16px;
-            padding: 40px 0;
-            grid-column: 1 / -1;
+            font-size: 14px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .character-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 25px;
+            }
+
+            h1 {
+                font-size: 32px;
+                margin-top: 40px;
+            }
+
+            .filter-console {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            #searchInput {
+                width: 100%;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            #userBar {
+                top: 10px;
+                right: 15px;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            #backToTop {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
         }
     </style>
 </head>
 <body>
 
+<div id="ambient-light"></div>
+
 <nav class="top-nav">
-    <a href="index.html">角色库</a>
-    <a href="weapons.html">武器库</a>
-    <a href="echoes.html">声骸库</a>
+    <a href="index.html">✦ 角色库</a>
+    <a href="weapons.html">⚔️ 武器库</a>
+    <a href="echoes.html">🔮 声骸库</a>
 </nav>
 
-<h1>✦ 数据坞 - 声骸图鉴 ✦</h1>
+<div id="userBar">
+    <a href="login.html" style="color: var(--primary-color); text-decoration: none; font-weight: bold;">🔑 漂泊者登录</a>
+</div>
+
+<h1>🔮 声骸库 🔮</h1>
+<p class="subtitle">探索神秘的声骸力量</p>
 
 <div class="filter-console">
-    <input type="text" id="searchInput" class="search-input" placeholder="✦ 输入声骸名称检索..." oninput="applyFilters()">
-
-    <select id="costFilter" class="filter-select" onchange="applyFilters()">
-        <option value="0">✦ 全部 COST</option>
-        <option value="4">COST 4 (领主级)</option>
-        <option value="3">COST 3 (精英级)</option>
-        <option value="1">COST 1 (基准级)</option>
-    </select>
-
-    <select id="sonataFilter" class="filter-select" onchange="applyFilters()">
-        <option value="全部">✦ 全部合鸣属性</option>
+    <input type="text" id="searchInput" placeholder="🔍 输入声骸名称进行检索...">
+    <select id="elementFilter" class="filter-select">
+        <option value="全部">✦ 全部合鸣</option>
         <option value="沉日劫明">沉日劫明</option>
         <option value="凝夜白霜">凝夜白霜</option>
         <option value="彻空冥雷">彻空冥雷</option>
         <option value="熔山裂谷">熔山裂谷</option>
-        <option value="隐世回光">隐世回光</option>
-        <option value="轻云出月">轻云出月</option>
-        <option value="浮星祛暗">浮星祛暗</option>
         <option value="啸谷长风">啸谷长风</option>
-        <option value="不绝余音">不绝余音</option>
+    </select>
+    <select id="rarityFilter" class="filter-select">
+        <option value="0">✦ 全部COST</option>
+        <option value="4">COST 4</option>
+        <option value="3">COST 3</option>
+        <option value="1">COST 1</option>
     </select>
 </div>
 
-<div class="echo-container" id="echoList">
-    <p style="text-align: center; width: 100%; color: #666;">正在连接数据坞同步数据...</p>
+<div class="character-container" id="charList">
+    <p class="loading-text">正在同步终端数据...</p>
 </div>
 
+<button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">▲</button>
+
 <script>
-    let allEchoes = [];
+    let allCharacters = [];
 
-    // 🚨 核心修改点：适配新的 RESTful 接口和 Result 响应结构
-    async function loadEchoes() {
+    const elementColors = {
+        '衍射': 'rgba(255, 215, 0, 0.7)',
+        '导电': 'rgba(191, 85, 236, 0.7)',
+        '气动': 'rgba(0, 255, 127, 0.7)',
+        '冷凝': 'rgba(0, 191, 255, 0.7)',
+        '热熔': 'rgba(255, 69, 0, 0.7)',
+        '湮灭': 'rgba(255, 20, 147, 0.7)'
+    };
+
+    window.addEventListener('mousemove', (e) => {
+        const ambient = document.getElementById('ambient-light');
+        ambient.style.setProperty('--mouse-x', `${e.clientX}px`);
+        ambient.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
+
+    document.getElementById('charList').addEventListener('mousemove', (e) => {
+        const cards = document.querySelectorAll('.glow-card');
+        cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--card-mouse-x', `${e.clientX - rect.left}px`);
+            card.style.setProperty('--card-mouse-y', `${e.clientY - rect.top}px`);
+        });
+    });
+
+    async function checkLogin() {
         try {
-            const response = await fetch('/api/echoes');
-            const result = await response.json(); // 拿到 Result 对象
-
-            if (result.code === 200) {
-                allEchoes = result.data; // 提取真正的声骸数组
-                renderEchoes(allEchoes);
-            } else {
-                console.error('获取声骸失败:', result.message);
-                document.getElementById('echoList').innerHTML = `<p class="empty-state">${result.message}</p>`;
+            const token = localStorage.getItem('jwt_token');
+            if (!token) return;
+            const response = await fetch('/api/user/info', { headers: { 'Authorization': 'Bearer ' + token } });
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                const user = result.data;
+                let html = `<span>✓ 已接入：<strong>${user.nickname}</strong></span>`;
+                if (user.role === 1) html += `<a href="admin.html" class="admin-btn">🛡️ 核心控制台</a>`;
+                html += `<a href="javascript:void(0)" onclick="logout()" style="color:#e74c3c; text-decoration:none; cursor:pointer;">[断开]</a>`;
+                document.getElementById('userBar').innerHTML = html;
             }
-        } catch (error) {
-            console.error('连接失败:', error);
-            document.getElementById('echoList').innerHTML = '<p class="empty-state">连接终端失败，请检查网络或后端服务...</p>';
+        } catch (e) { console.log("身份验证失效"); }
+    }
+
+    function logout() {
+        if(confirm("确定要断开终端连接吗？")) {
+            localStorage.removeItem('jwt_token');
+            window.location.reload();
         }
     }
 
-    function renderEchoes(dataList) {
-        const listDiv = document.getElementById('echoList');
-        listDiv.innerHTML = '';
+    async function loadCharacters() {
+        try {
+            const response = await fetch('/api/echoes');
+            const result = await response.json();
+            if (result.code === 200) {
+                allCharacters = result.data;
+                renderCards(allCharacters);
+            }
+        } catch (e) { console.error('声骸加载失败'); }
+    }
 
-        if (!dataList || dataList.length === 0) {
-            listDiv.innerHTML = '<p class="empty-state">数据坞中未检索到匹配的声骸记录，请更换关键词或条件。</p>';
+    function renderCards(dataList) {
+        const listDiv = document.getElementById('charList');
+        listDiv.innerHTML = '';
+        if (dataList.length === 0) {
+            listDiv.innerHTML = '<p class="loading-text">未找到匹配的声骸</p>';
             return;
         }
-
-        dataList.forEach(e => {
+        dataList.forEach(echo => {
             const card = document.createElement('div');
-            card.className = 'echo-card';
+            card.className = 'glow-card';
+            const glowColor = 'rgba(138, 43, 226, 0.7)'; // 声骸使用紫色
+            card.style.setProperty('--elem-color', glowColor);
 
-            const imgPath = e.imageUrl || e.imgPath || 'images/default_echo.png';
-
+            card.onclick = () => {}; // 声骸暂无详情页
             card.innerHTML = `
-                <div class="echo-img-box">
-                    <img src="${imgPath}" alt="${e.name}" onerror="this.style.display='none'">
-                </div>
-                <div class="echo-overlay">
-                    <div class="echo-header">
-                        <h3 class="echo-name">${e.name}</h3>
-                        <span class="cost-badge">COST ${e.cost}</span>
+                <div class="glow-card-inner">
+                    <div class="card-img-box">
+                        <img src="${echo.imageUrl || 'images/default.jpg'}" class="card-img" alt="${echo.name}" onerror="this.src='images/default.jpg'">
                     </div>
-                    <span class="sonata-tag">✦ 合鸣：${e.sonataEffect || '未录入'}</span>
-                    <div class="skill-box">
-                        <p class="skill-desc">${e.skillDesc || '暂无声骸技能描述...'}</p>
+                    <div class="card-info">
+                        <p class="card-name">${echo.name}</p>
+                        <div>
+                            <span class="tag" style="color: #9b59b6; border-color: #9b59b6;">COST ${echo.cost}</span>
+                            <span class="tag" style="color: ${glowColor.replace('0.7', '1')}; border-color: ${glowColor.replace('0.7', '0.5')};">${echo.sonataEffect || '未知'}</span>
+                        </div>
+                        <p class="desc">${echo.skillDesc || '暂无描述'}</p>
                     </div>
                 </div>
             `;
@@ -312,21 +633,28 @@
 
     function applyFilters() {
         const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-        const cost = document.getElementById('costFilter').value;
-        const sonata = document.getElementById('sonataFilter').value;
+        const element = document.getElementById('elementFilter').value;
+        const rarity = document.getElementById('rarityFilter').value;
 
-        const filtered = allEchoes.filter(e => {
-            const matchName = e.name.toLowerCase().includes(keyword);
-            const matchCost = (cost === '0') || (e.cost == cost);
-            const matchSonata = (sonata === '全部') || (e.sonataEffect === sonata);
-
-            return matchName && matchCost && matchSonata;
+        const filtered = allCharacters.filter(echo => {
+            const matchKeyword = echo.name.toLowerCase().includes(keyword) || (echo.sonataEffect && echo.sonataEffect.includes(keyword));
+            const matchElement = (element === '全部') || (echo.sonataEffect === element);
+            const matchRarity = (rarity === '0') || (echo.cost == rarity);
+            return matchKeyword && matchElement && matchRarity;
         });
-
-        renderEchoes(filtered);
+        renderCards(filtered);
     }
 
-    loadEchoes();
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('elementFilter').addEventListener('change', applyFilters);
+    document.getElementById('rarityFilter').addEventListener('change', applyFilters);
+
+    window.addEventListener('scroll', () => {
+        document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
+    });
+
+    checkLogin();
+    loadCharacters();
 </script>
 </body>
 </html>

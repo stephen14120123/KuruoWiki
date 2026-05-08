@@ -2,265 +2,528 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>KuruoWiki - 武器武库</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武器库 - KuroWiki</title>
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: #e0e0e0;
-            font-family: "Microsoft YaHei", sans-serif;
-            margin: 0;
-            padding: 0;
+        :root {
+            --mouse-x: 50vw;
+            --mouse-y: 50vh;
+            --card-mouse-x: 50%;
+            --card-mouse-y: 50%;
+            --elem-color: rgba(243, 156, 18, 0.7);
+            --primary-color: #f39c12;
+            --primary-dark: #e67e22;
+            --bg-dark: #0a0a0a;
+            --bg-card: #0d0d0d;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* 全局导航栏 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            color: #e0e0e0;
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            position: relative;
+        }
+
+        /* 赛博朋克网格背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(243, 156, 18, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(243, 156, 18, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 背景光圈 */
+        #ambient-light {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(243, 156, 18, 0.08),
+                transparent 50%
+            );
+            transition: background 0.1s ease;
+        }
+
+        /* 导航栏 */
         .top-nav {
-            background-color: #1a1a1a;
+            background: rgba(10, 10, 10, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
             display: flex;
             justify-content: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #f39c1233;
+            gap: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .top-nav a {
-            color: #f2f2f2;
+            color: #ccc;
             text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0 20px;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 18px 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            border-bottom: 2px solid transparent;
+        }
+
+        .top-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
         }
 
         .top-nav a:hover {
-            background-color: #d4a373;
-            color: #1a1a1a;
+            color: var(--primary-color);
         }
 
+        .top-nav a:hover::after {
+            width: 100%;
+        }
+
+        .top-nav a:nth-child(2) {
+            color: var(--primary-color);
+        }
+
+        .top-nav a:nth-child(2)::after {
+            width: 100%;
+        }
+
+        /* 用户栏 */
+        #userBar {
+            position: absolute;
+            top: 15px;
+            right: 40px;
+            font-size: 13px;
+            color: #aaa;
+            z-index: 105;
+            background: rgba(30, 30, 30, 0.6);
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        #userBar:hover {
+            background: rgba(30, 30, 30, 0.8);
+            border-color: rgba(243, 156, 18, 0.3);
+        }
+
+        .admin-btn {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            border: 1px solid #e74c3c;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        /* 标题 */
         h1 {
             text-align: center;
-            color: #f39c12;
-            margin: 40px 0 20px;
-            letter-spacing: 2px;
+            color: var(--primary-color);
+            margin-top: 60px;
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+            font-weight: 300;
+            font-size: 42px;
+            position: relative;
+            z-index: 10;
+            text-shadow: 0 0 30px rgba(243, 156, 18, 0.3);
+            animation: fadeInDown 0.6s ease-out;
         }
 
-        /* 筛选控制台：加入了搜索框的样式 */
+        .subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 10;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 筛选控制台 */
         .filter-console {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 15px;
-            margin-bottom: 40px;
-            flex-wrap: wrap; /* 屏幕变窄时自动换行 */
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+            padding: 0 20px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
         }
 
-        /* 炫酷的搜索框样式 */
-        .search-input {
-            padding: 10px 15px;
-            background: #111;
-            border: 1px solid #555;
+        .filter-select,
+        #searchInput {
+            padding: 12px 18px;
+            background: rgba(25, 25, 25, 0.6);
+            border: 1px solid var(--border-color);
             color: #fff;
-            border-radius: 8px;
+            border-radius: 10px;
             outline: none;
-            width: 250px;
-            font-size: 14px;
             transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            font-size: 14px;
         }
 
-        /* 搜索框聚焦时的发光效果 */
-        .search-input:focus {
-            border-color: #f39c12;
-            box-shadow: 0 0 12px rgba(243, 156, 18, 0.4), inset 0 2px 4px rgba(0,0,0,0.5);
-            background: #1a1a1a;
+        .filter-select:hover,
+        #searchInput:focus {
+            border-color: var(--primary-color);
+            background: rgba(25, 25, 25, 0.8);
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.2);
         }
 
-        .search-input::placeholder {
-            color: #666;
+        #searchInput {
+            width: 280px;
         }
 
         .filter-select {
-            padding: 10px 15px;
-            background: #1a1a1a;
-            border: 1px solid #f39c12;
-            color: #fff;
-            border-radius: 8px;
             cursor: pointer;
-            outline: none;
         }
 
-        .weapon-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 30px;
+        .filter-select option {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        /* 卡片容器 */
+        .character-container {
             max-width: 1400px;
-            margin: 0 auto;
+            margin: 0 auto 80px auto;
             padding: 20px;
-            justify-content: center;
-        }
-
-        .weapon-card {
-            background-color: #1a1a1a;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 40px;
             position: relative;
+            z-index: 10;
+        }
+
+        /* 流光卡片 */
+        .glow-card {
+            height: 520px;
+            border-radius: 16px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            padding: 1px;
             overflow: hidden;
-            border: 1px solid #333;
-            transition: transform 0.3s ease;
-            aspect-ratio: 16 / 9;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation: fadeInUp 0.6s ease-out both;
         }
 
-        .weapon-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(243, 156, 18, 0.4);
-            border-color: #f39c12;
+        .glow-card:nth-child(1) { animation-delay: 0.3s; }
+        .glow-card:nth-child(2) { animation-delay: 0.35s; }
+        .glow-card:nth-child(3) { animation-delay: 0.4s; }
+        .glow-card:nth-child(n+4) { animation-delay: 0.45s; }
+
+        .glow-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.8);
         }
 
-        .weapon-img-box img {
+        .glow-card::before {
+            content: "";
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            z-index: 1;
+            background: radial-gradient(
+                800px circle at var(--card-mouse-x) var(--card-mouse-y),
+                var(--elem-color),
+                transparent 60%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease-out;
+            z-index: 0;
         }
 
-        .weapon-overlay {
+        .character-container:hover .glow-card::before {
+            opacity: 1;
+        }
+
+        .glow-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-card);
+            border-radius: 15px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .glow-card-inner::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                500px circle at var(--card-mouse-x) var(--card-mouse-y),
+                rgba(255, 255, 255, 0.06),
+                transparent 45%
+            );
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .card-img-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            transition: transform 0.6s ease;
+        }
+
+        .glow-card:hover .card-img {
+            transform: scale(1.08);
+        }
+
+        .card-info {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(to top,
-            rgba(0, 0, 0, 0.9) 0%,
-            rgba(0, 0, 0, 0.5) 40%,
-            transparent 100%);
-            color: #fff;
-            padding: 20px;
-            z-index: 2;
+            height: 48%;
+            padding: 35px 20px 20px 20px;
+            z-index: 10;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.75) 45%, transparent 100%);
         }
 
-        .weapon-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 10px;
-        }
-
-        .weapon-name {
-            color: #fce8ac;
-            font-size: 24px;
+        .card-name {
+            font-size: 28px;
             font-weight: bold;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            margin: 0 0 10px 0;
+            color: #fff;
+            text-shadow: 0 3px 15px rgba(0, 0, 0, 1);
         }
 
-        .weapon-type-tag {
-            background-color: rgba(0,0,0,0.6);
-            padding: 3px 10px;
+        .tag {
+            display: inline-block;
+            padding: 5px 12px;
             border-radius: 6px;
-            font-size: 13px;
-            color: #fce8ac;
-            border: 1px solid rgba(252, 232, 172, 0.3);
-            backdrop-filter: blur(4px);
-        }
-
-        .stat-row {
-            display: flex;
-            gap: 25px;
-            margin-bottom: 12px;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-label {
-            color: #bbb;
             font-size: 12px;
-            margin-bottom: 2px;
+            margin-right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
         }
 
-        .stat-val {
-            color: #fce8ac;
-            font-size: 20px;
-            font-weight: bold;
+        .tag:hover {
+            border-color: var(--primary-color);
+            background: rgba(243, 156, 18, 0.1);
         }
 
-        .skill-box {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px 15px;
-            border-radius: 8px;
-            border-left: 4px solid #79c5e3;
-            backdrop-filter: blur(4px);
-        }
-
-        .skill-box strong {
-            color: #79c5e3;
-            font-size: 15px;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .skill-desc {
-            color: #ddd;
-            margin: 0;
+        .desc {
             font-size: 13px;
-            line-height: 1.4;
+            color: #ccc;
+            line-height: 1.6;
+            margin-top: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
         }
 
-        .rarity-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            z-index: 3;
+        /* 返回顶部按钮 */
+        #backToTop {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.3) 0%, rgba(230, 126, 34, 0.2) 100%);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            font-size: 20px;
+            cursor: pointer;
+            display: none;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.2);
         }
-        .bg-5star { background: #f1c40f; }
-        .bg-4star { background: #9b59b6; }
-        .bg-3star { background: #3498db; }
 
-        /* 搜索为空时的提示文字 */
-        .empty-state {
+        #backToTop:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(243, 156, 18, 0.4);
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.5) 0%, rgba(230, 126, 34, 0.3) 100%);
+        }
+
+        /* 加载提示 */
+        .loading-text {
             text-align: center;
-            width: 100%;
-            color: #888;
-            font-size: 16px;
-            padding: 40px 0;
-            grid-column: 1 / -1; /* 让提示文字占满整行 */
+            color: #666;
+            font-size: 14px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .character-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 25px;
+            }
+
+            h1 {
+                font-size: 32px;
+                margin-top: 40px;
+            }
+
+            .filter-console {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            #searchInput {
+                width: 100%;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            #userBar {
+                top: 10px;
+                right: 15px;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            #backToTop {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
         }
     </style>
 </head>
 <body>
 
+<div id="ambient-light"></div>
+
 <nav class="top-nav">
-    <a href="index.html">角色库</a>
-    <a href="weapons.html">武器库</a>
-    <a href="echoes.html">声骸库</a>
+    <a href="index.html">✦ 角色库</a>
+    <a href="weapons.html">⚔️ 武器库</a>
+    <a href="echoes.html">🔮 声骸库</a>
 </nav>
 
-<h1>✦ 武器武库 ✦</h1>
+<div id="userBar">
+    <a href="login.html" style="color: var(--primary-color); text-decoration: none; font-weight: bold;">🔑 漂泊者登录</a>
+</div>
+
+<h1>⚔️ 武器库 ⚔️</h1>
+<p class="subtitle">探索强大的武器装备</p>
 
 <div class="filter-console">
-    <input type="text" id="searchInput" class="search-input" placeholder="✦ 输入武器名称检索..." oninput="applyFilters()">
-
-    <select id="typeFilter" class="filter-select" onchange="applyFilters()">
-        <option value="全部">✦ 全部武器类型</option>
-        <option value="迅刀">迅刀</option>
+    <input type="text" id="searchInput" placeholder="🔍 输入武器名称进行检索...">
+    <select id="elementFilter" class="filter-select">
+        <option value="全部">✦ 全部类型</option>
         <option value="长刃">长刃</option>
-        <option value="佩枪">佩枪</option>
+        <option value="迅刀">迅刀</option>
         <option value="臂铠">臂铠</option>
         <option value="音感仪">音感仪</option>
+        <option value="佩枪">佩枪</option>
     </select>
-
-    <select id="rarityFilter" class="filter-select" onchange="applyFilters()">
+    <select id="rarityFilter" class="filter-select">
         <option value="0">✦ 全部星级</option>
         <option value="5">5星 武器</option>
         <option value="4">4星 武器</option>
@@ -268,74 +531,99 @@
     </select>
 </div>
 
-<div class="weapon-container" id="weaponList">
-    <p style="text-align: center; width: 100%; color: #666;">正在同步终端数据...</p>
+<div class="character-container" id="charList">
+    <p class="loading-text">正在同步终端数据...</p>
 </div>
 
+<button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">▲</button>
+
 <script>
-    let allWeapons = [];
+    let allCharacters = [];
 
-    // 🚨 核心修改点：更新了接口路径和 Result 数据结构的解析
-    async function loadWeapons() {
+    const elementColors = {
+        '衍射': 'rgba(255, 215, 0, 0.7)',
+        '导电': 'rgba(191, 85, 236, 0.7)',
+        '气动': 'rgba(0, 255, 127, 0.7)',
+        '冷凝': 'rgba(0, 191, 255, 0.7)',
+        '热熔': 'rgba(255, 69, 0, 0.7)',
+        '湮灭': 'rgba(255, 20, 147, 0.7)'
+    };
+
+    window.addEventListener('mousemove', (e) => {
+        const ambient = document.getElementById('ambient-light');
+        ambient.style.setProperty('--mouse-x', `${e.clientX}px`);
+        ambient.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
+
+    document.getElementById('charList').addEventListener('mousemove', (e) => {
+        const cards = document.querySelectorAll('.glow-card');
+        cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--card-mouse-x', `${e.clientX - rect.left}px`);
+            card.style.setProperty('--card-mouse-y', `${e.clientY - rect.top}px`);
+        });
+    });
+
+    async function checkLogin() {
         try {
-            const response = await fetch('/api/weapons');
+            const token = localStorage.getItem('jwt_token');
+            if (!token) return;
+            const response = await fetch('/api/user/info', { headers: { 'Authorization': 'Bearer ' + token } });
             const result = await response.json();
-
-            if (result.code === 200) {
-                allWeapons = result.data; // 剥开外壳提取真实数组
-                renderWeapons(allWeapons);
-            } else {
-                console.error('获取数据失败:', result.message);
-                document.getElementById('weaponList').innerHTML = `<p class="empty-state">${result.message}</p>`;
+            if (result.code === 200 && result.data) {
+                const user = result.data;
+                let html = `<span>✓ 已接入：<strong>${user.nickname}</strong></span>`;
+                if (user.role === 1) html += `<a href="admin.html" class="admin-btn">🛡️ 核心控制台</a>`;
+                html += `<a href="javascript:void(0)" onclick="logout()" style="color:#e74c3c; text-decoration:none; cursor:pointer;">[断开]</a>`;
+                document.getElementById('userBar').innerHTML = html;
             }
-        } catch (error) {
-            console.error('加载失败:', error);
-            document.getElementById('weaponList').innerHTML = '<p class="empty-state">连接失败，请检查数据链路...</p>';
+        } catch (e) { console.log("身份验证失效"); }
+    }
+
+    function logout() {
+        if(confirm("确定要断开终端连接吗？")) {
+            localStorage.removeItem('jwt_token');
+            window.location.reload();
         }
     }
 
-    function renderWeapons(dataList) {
-        const listDiv = document.getElementById('weaponList');
-        listDiv.innerHTML = '';
+    async function loadCharacters() {
+        try {
+            const response = await fetch('/api/weapons');
+            const result = await response.json();
+            if (result.code === 200) {
+                allCharacters = result.data;
+                renderCards(allCharacters);
+            }
+        } catch (e) { console.error('武器加载失败'); }
+    }
 
-        // 增加了搜索结果为空时的优雅提示
-        if (!dataList || dataList.length === 0) {
-            listDiv.innerHTML = '<p class="empty-state">未检索到匹配的武器档案，请尝试更换关键词。</p>';
+    function renderCards(dataList) {
+        const listDiv = document.getElementById('charList');
+        listDiv.innerHTML = '';
+        if (dataList.length === 0) {
+            listDiv.innerHTML = '<p class="loading-text">未找到匹配的武器</p>';
             return;
         }
-
-        dataList.forEach(w => {
+        dataList.forEach(weapon => {
             const card = document.createElement('div');
-            card.className = 'weapon-card';
+            card.className = 'glow-card';
+            const glowColor = 'rgba(243, 156, 18, 0.7)'; // 武器统一使用橙色
+            card.style.setProperty('--elem-color', glowColor);
 
-            const imgPath = (w.imageUrl && w.imageUrl !== "") ? w.imageUrl : 'images/default_weapon.png';
-            let rarityClass = 'bg-3star';
-            if(w.rarity === 5) rarityClass = 'bg-5star';
-            else if(w.rarity === 4) rarityClass = 'bg-4star';
-
+            card.onclick = () => {}; // 武器暂无详情页
             card.innerHTML = `
-                <div class="rarity-bar ${rarityClass}"></div>
-                <div class="weapon-img-box">
-                    <img src="${imgPath}" alt="${w.name}" onerror="this.style.display='none'">
-                </div>
-                <div class="weapon-overlay">
-                    <div class="weapon-header">
-                        <h3 class="weapon-name">${w.name}</h3>
-                        <span class="weapon-type-tag">${w.weaponType} | ${w.rarity}星</span>
+                <div class="glow-card-inner">
+                    <div class="card-img-box">
+                        <img src="${weapon.imageUrl || 'images/default.jpg'}" class="card-img" alt="${weapon.name}" onerror="this.src='images/default.jpg'">
                     </div>
-                    <div class="stat-row">
-                        <div class="stat-item">
-                            <span class="stat-label">基础攻击</span>
-                            <span class="stat-val">${w.baseAtk || '0'}</span>
+                    <div class="card-info">
+                        <p class="card-name">${weapon.name}</p>
+                        <div>
+                            <span class="tag" style="color: #f1c40f; border-color: #f1c40f;">⭐ ${weapon.rarity}星</span>
+                            <span class="tag" style="color: ${glowColor.replace('0.7', '1')}; border-color: ${glowColor.replace('0.7', '0.5')};">${weapon.weaponType}</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">${w.subStatType || '副词条'}</span>
-                            <span class="stat-val" style="color:#f39c12">${w.subStatValue || '0'}</span>
-                        </div>
-                    </div>
-                    <div class="skill-box">
-                        <strong>✦ ${w.skillName || '武器技能'}</strong>
-                        <p class="skill-desc">${w.skillDesc || '暂无详细描述...'}</p>
+                        <p class="desc">${weapon.skillDesc || '暂无描述'}</p>
                     </div>
                 </div>
             `;
@@ -343,31 +631,30 @@
         });
     }
 
-    // 升级版的多维度过滤函数
     function applyFilters() {
-        // 获取三个控件的值
-        const keyword = document.getElementById('searchInput').value.trim().toLowerCase(); // 获取搜索词并转小写
-        const type = document.getElementById('typeFilter').value;
+        const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+        const element = document.getElementById('elementFilter').value;
         const rarity = document.getElementById('rarityFilter').value;
 
-        // 核心过滤逻辑
-        const filtered = allWeapons.filter(w => {
-            // 1. 匹配名称 (如果输入框为空，includes('') 会返回 true)
-            const matchName = w.name.toLowerCase().includes(keyword);
-            // 2. 匹配类型
-            const matchType = (type === '全部') || (w.weaponType === type);
-            // 3. 匹配星级
-            const matchRarity = (rarity === '0') || (w.rarity == rarity);
-
-            // 必须三个条件同时满足才显示
-            return matchName && matchType && matchRarity;
+        const filtered = allCharacters.filter(weapon => {
+            const matchKeyword = weapon.name.toLowerCase().includes(keyword) || (weapon.weaponType && weapon.weaponType.includes(keyword));
+            const matchElement = (element === '全部') || (weapon.weaponType === element);
+            const matchRarity = (rarity === '0') || (weapon.rarity == rarity);
+            return matchKeyword && matchElement && matchRarity;
         });
-
-        // 重新渲染卡片
-        renderWeapons(filtered);
+        renderCards(filtered);
     }
 
-    loadWeapons();
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('elementFilter').addEventListener('change', applyFilters);
+    document.getElementById('rarityFilter').addEventListener('change', applyFilters);
+
+    window.addEventListener('scroll', () => {
+        document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
+    });
+
+    checkLogin();
+    loadCharacters();
 </script>
 </body>
 </html>
