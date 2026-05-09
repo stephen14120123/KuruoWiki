@@ -123,6 +123,7 @@
         .filter-select {
             cursor: pointer;
             padding-right: 30px;
+            width: 140px; /* 抵消 common.css 的全局 100% 宽度，恢复电脑端的固定宽度 */
         }
 
         .filter-select option {
@@ -130,21 +131,21 @@
             color: white;
         }
 
-        /* 卡片容器 */
+        /* 卡片容器 - 横版布局，一行4个 */
         .character-container {
-            max-width: 1400px;
+            max-width: 1600px; /* 增大容器宽度 */
             margin: 0 auto 80px auto;
             padding: 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 40px;
+            grid-template-columns: repeat(4, 1fr); /* 固定4列，平分宽度 */
+            gap: 25px;
             position: relative;
             z-index: 10;
         }
 
-        /* 流光卡片 */
+        /* 流光卡片 - 横版 */
         .glow-card {
-            height: 520px;
+            height: 220px; /* 降低高度，让展示位更细长 */
             border-radius: 16px;
             position: relative;
             background: rgba(255, 255, 255, 0.04);
@@ -162,7 +163,7 @@
         .glow-card:nth-child(n+4) { animation-delay: 0.45s; }
 
         .glow-card:hover {
-            transform: translateY(-12px);
+            transform: translateY(-8px); /* 横版卡片悬浮效果 */
             box-shadow: 0 35px 70px rgba(0, 0, 0, 0.8);
         }
 
@@ -195,7 +196,7 @@
             border-radius: 15px;
             z-index: 1;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* 改回竖版布局，让文字叠加在图片上 */
             overflow: hidden;
         }
 
@@ -216,7 +217,7 @@
         }
 
         .card-img-box {
-            position: absolute;
+            position: absolute; /* 改回绝对定位，作为背景 */
             top: 0;
             left: 0;
             width: 100%;
@@ -228,9 +229,10 @@
         .card-img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            object-position: top center;
+            object-fit: contain; /* 改回 contain，完整展示横版武器 */
+            object-position: center center; /* 居中显示 */
             transition: transform 0.6s ease;
+            padding: 10px; /* 适当内边距 */
         }
 
         .glow-card:hover .card-img {
@@ -238,24 +240,24 @@
         }
 
         .card-info {
-            position: absolute;
+            position: absolute; /* 改回绝对定位，叠加在图片上 */
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 48%;
-            padding: 35px 20px 20px 20px;
+            height: 40%; /* 减少信息区域高度 */
+            padding: 20px 15px 15px 15px;
             z-index: 10;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.75) 45%, transparent 100%);
+            justify-content: flex-end; /* 底部对齐 */
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.75) 50%, transparent 100%); /* 渐变遮罩 */
         }
 
         .card-name {
-            font-size: 28px;
+            font-size: 22px; /* 调整字体大小 */
             font-weight: bold;
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
             color: #fff;
             text-shadow: 0 3px 15px rgba(0, 0, 0, 1);
         }
@@ -278,12 +280,12 @@
         }
 
         .desc {
-            font-size: 13px;
+            font-size: 12px; /* 调整描述字体 */
             color: #ccc;
-            line-height: 1.6;
-            margin-top: 10px;
+            line-height: 1.5;
+            margin-top: 8px;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 2; /* 最多显示 2 行 */
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
@@ -329,10 +331,35 @@
         }
 
         /* 响应式设计 */
+        @media (max-width: 1400px) {
+            .character-container {
+                grid-template-columns: repeat(3, 1fr); /* 中等屏幕3列 */
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .character-container {
+                grid-template-columns: repeat(2, 1fr); /* 小屏幕2列 */
+            }
+        }
+
         @media (max-width: 768px) {
             .character-container {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 25px;
+                grid-template-columns: 1fr; /* 手机端单列 */
+                gap: 20px;
+            }
+
+            .glow-card {
+                height: 200px; /* 手机端卡片高度 */
+            }
+
+            .card-name {
+                font-size: 20px;
+            }
+
+            .desc {
+                font-size: 11px;
+                -webkit-line-clamp: 2;
             }
 
             h1 {
